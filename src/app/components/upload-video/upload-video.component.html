@@ -1,0 +1,219 @@
+<div class="upload-container">
+  <div class="upload-card">
+    <div class="upload-header">
+      <h1 class="upload-title">
+        <span class="material-icons">cloud_upload</span>
+        Submit Video
+      </h1>
+      <p class="upload-subtitle">Share your content with the community</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="upload-form">
+      
+      <!-- Title Field -->
+      <div class="form-group">
+        <label for="title" class="form-label">
+          <span class="material-icons">title</span>
+          Title
+          <span class="required">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="title" 
+          name="title"
+          [(ngModel)]="title"
+          class="form-input"
+          placeholder="Enter video title"
+          maxlength="100"
+          required
+        />
+      </div>
+
+      <!-- Description Field -->
+      <div class="form-group">
+        <label for="description" class="form-label">
+          <span class="material-icons">description</span>
+          Description
+          <span class="required">*</span>
+        </label>
+        <textarea 
+          id="description" 
+          name="description"
+          [(ngModel)]="description"
+          class="form-textarea"
+          placeholder="Describe your video content"
+          rows="4"
+          maxlength="500"
+          required
+        ></textarea>
+      </div>
+
+      <!-- Tags Field -->
+      <div class="form-group">
+        <label for="tags" class="form-label">
+          <span class="material-icons">tag</span>
+          Tags
+          <span class="required">*</span>
+        </label>
+        <div class="tag-input-container">
+          <input 
+            type="text" 
+            id="tags" 
+            name="tagInput"
+            [(ngModel)]="tagInput"
+            (keypress)="onTagInputKeyPress($event)"
+            class="form-input"
+            placeholder="Add tags (e.g. gaming, vlog, tutorial)"
+          />
+          <button 
+            type="button" 
+            (click)="addTag()" 
+            class="btn-add-tag"
+            [disabled]="!tagInput.trim()"
+          >
+            <span class="material-icons">add</span>
+            Add
+          </button>
+        </div>
+        <div class="tags-list">
+          @for (tag of tags; track tag; let i = $index) {
+            <span class="tag">
+              {{ tag }}
+              <button type="button" (click)="removeTag(i)" class="tag-remove">
+                <span class="material-icons">close</span>
+              </button>
+            </span>
+          }
+        </div>
+        <p class="form-hint">Tags must start with #. Press Enter or Add button.</p>
+      </div>
+
+      <!-- Thumbnail Upload -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="material-icons">image</span>
+          Thumbnail Image
+          <span class="required">*</span>
+        </label>
+        <div class="file-upload-area">
+          @if (thumbnailPreview()) {
+            <div class="thumbnail-preview">
+              <img [src]="thumbnailPreview()" alt="Thumbnail preview" />
+              <button type="button" (click)="thumbnailPreview.set(null); thumbnail = null" class="btn-remove-file">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+          } @else {
+            <label for="thumbnail" class="file-upload-label">
+              <span class="material-icons">add_photo_alternate</span>
+              <span class="file-upload-text">Click to select image</span>
+              <span class="file-upload-hint">JPG, PNG (max 5MB)</span>
+            </label>
+            <input 
+              type="file" 
+              id="thumbnail" 
+              name="thumbnail"
+              (change)="onThumbnailSelect($event)"
+              accept="image/*"
+              class="file-input"
+              required
+            />
+          }
+        </div>
+      </div>
+
+      <!-- Video Upload -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="material-icons">videocam</span>
+          Video
+          <span class="required">*</span>
+        </label>
+        <div class="file-upload-area">
+          @if (videoFileName()) {
+            <div class="file-selected">
+              <span class="material-icons">video_file</span>
+              <span class="file-name">{{ videoFileName() }}</span>
+              <button type="button" (click)="videoFileName.set(null); video = null" class="btn-remove-file">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+          } @else {
+            <label for="video" class="file-upload-label">
+              <span class="material-icons">video_library</span>
+              <span class="file-upload-text">Click to select video</span>
+              <span class="file-upload-hint">MP4 format (max 200MB)</span>
+            </label>
+            <input 
+              type="file" 
+              id="video" 
+              name="video"
+              (change)="onVideoSelect($event)"
+              accept="video/mp4"
+              class="file-input"
+              required
+            />
+          }
+        </div>
+      </div>
+
+      <!-- Location Field -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="material-icons">location_on</span>
+          Geographic Location
+          <span class="optional">(optional)</span>
+        </label>
+        <div class="location-controls">
+          <button 
+            type="button" 
+            (click)="getCurrentLocation()" 
+            class="btn-location"
+            [disabled]="isUploading()"
+          >
+            <span class="material-icons">my_location</span>
+            Include My Location
+          </button>
+          @if (includeLocation && location) {
+            <span class="location-text">
+              <span class="material-icons">check_circle</span>
+              Location obtained
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Messages -->
+      @if (errorMessage()) {
+        <div class="alert alert-error">
+          <span class="material-icons">error</span>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="alert alert-success">
+          <span class="material-icons">check_circle</span>
+          {{ successMessage() }}
+        </div>
+      }
+
+      <!-- Submit Buttons -->
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="isUploading()"
+        >
+          @if (isUploading()) {
+            <span class="spinner"></span>
+            Uploading...
+          } @else {
+            <span class="material-icons">cloud_upload</span>
+            Submit Video
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
