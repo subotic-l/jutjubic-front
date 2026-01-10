@@ -1,0 +1,38 @@
+<div class="home-container">
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner-large"></div>
+    </div>
+  } @else if (displayedVideos().length === 0) {
+    <div class="no-videos">
+      <span class="material-icons">video_library</span>
+      <h2>No videos yet</h2>
+      <p>Be the first to upload a video!</p>
+    </div>
+  } @else {
+    <div class="videos-grid">
+      @for (video of displayedVideos(); track video.id) {
+        <div class="video-card" (click)="onVideoClick(video.id)">
+          <div class="video-thumbnail">
+            <img [src]="getThumbnailUrl(video.thumbnailPath)" [alt]="video.title">
+            <div class="play-overlay">
+              <span class="material-icons">play_circle</span>
+            </div>
+          </div>
+          <div class="video-info">
+            <h3 class="video-title">{{ video.title }}</h3>
+            <p class="video-author">{{ video.username || 'Unknown' }}</p>
+          </div>
+        </div>
+      }
+    </div>
+    
+    @if (hasMoreVideos()) {
+      <div class="load-more">
+        <button (click)="loadMoreVideos()" class="btn-load-more">
+          Load More Videos
+        </button>
+      </div>
+    }
+  }
+</div>

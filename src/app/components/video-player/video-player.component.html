@@ -1,0 +1,41 @@
+<div class="video-player-container">
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner-large"></div>
+    </div>
+  } @else if (video()) {
+    <div class="video-player">
+      <div class="video-wrapper">
+        <video controls [src]="videoUrl()" class="video-element">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      <div class="video-details">
+        <div class="video-header">
+          <button (click)="goBack()" class="btn-back">
+            <span class="material-icons">arrow_back</span>
+            Back
+          </button>
+        </div>
+        
+        <h1 class="video-title">{{ video()?.title }}</h1>
+        
+        <div class="video-meta">
+          <div class="author-info">
+            <span class="material-icons">account_circle</span>
+            <span class="author-name">{{ video()?.username || 'Unknown' }}</span>
+          </div>
+          <span class="upload-date">{{ video()!.createdAt | date:'medium' }}</span>
+        </div>
+        
+        @if (video()?.description) {
+          <div class="video-description">
+            <h3>Description</h3>
+            <p>{{ video()?.description }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
