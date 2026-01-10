@@ -1,0 +1,87 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Welcome Back</h1>
+      <p>Sign in to continue to JutJubic</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-message">
+        <span class="material-icons">error</span>
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Enter your email"
+          [class.error]="email?.invalid && email?.touched"
+        />
+        @if (email?.invalid && email?.touched) {
+          <span class="error-text">
+            @if (email?.errors?.['required']) {
+              Email is required
+            } @else if (email?.errors?.['email']) {
+              Please enter a valid email
+            }
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.error]="password?.invalid && password?.touched"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+          >
+            @if (showPassword()) {
+              <span class="material-icons">visibility</span>
+            } @else {
+              <span class="material-icons">visibility_off</span>
+            }
+          </button>
+        </div>
+        @if (password?.invalid && password?.touched) {
+          <span class="error-text">
+            @if (password?.errors?.['required']) {
+              Password is required
+            } @else if (password?.errors?.['minlength']) {
+              Password must be at least 8 characters
+            }
+          </span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn-submit"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          Signing in...
+        } @else {
+          Sign In
+        }
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Don't have an account? <a routerLink="/register">Sign up</a></p>
+    </div>
+  </div>
+</div>
