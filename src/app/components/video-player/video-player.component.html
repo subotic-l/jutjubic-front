@@ -12,12 +12,6 @@
       </div>
       
       <div class="video-details">
-        <div class="video-header">
-          <button (click)="goBack()" class="btn-back">
-            <span class="material-icons">arrow_back</span>
-            Back
-          </button>
-        </div>
         
         <h1 class="video-title">{{ video()?.title }}</h1>
         
@@ -26,7 +20,36 @@
             <span class="material-icons">account_circle</span>
             <span class="author-name">{{ video()?.username || 'Unknown' }}</span>
           </div>
-          <span class="upload-date">{{ video()!.createdAt | date:'medium' }}</span>
+          
+          <div class="video-actions">
+            <button (click)="onLike()" class="action-btn like-btn">
+              <span class="material-icons">thumb_up</span>
+              <span class="action-label">Like</span>
+            </button>
+            <button (click)="onDislike()" class="action-btn dislike-btn">
+              <span class="material-icons">thumb_down</span>
+              <span class="action-label">Dislike</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="video-stats">
+          @if (video()?.views !== undefined) {
+            <span class="views-count">
+              <span class="material-icons">visibility</span>
+              {{ video()!.views }} views
+            </span>
+          }
+          <span class="upload-date">
+            <span class="material-icons">calendar_today</span>
+            {{ video()!.createdAt | date:'medium' }}
+          </span>
+          @if (video()?.location) {
+            <span class="location">
+              <span class="material-icons">location_on</span>
+              {{ video()!.location }}
+            </span>
+          }
         </div>
         
         @if (video()?.description) {

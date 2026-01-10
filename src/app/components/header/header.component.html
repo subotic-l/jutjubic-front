@@ -30,6 +30,10 @@
         } @else {
           <div class="user-menu">
             <span class="username">{{ authService.currentUser()?.username || authService.currentUser()?.email }}</span>
+            <a routerLink="/upload" class="btn btn-upload">
+              <span class="material-icons">cloud_upload</span>
+              Upload Video
+            </a>
             <button (click)="onLogout()" class="btn btn-logout">
               <span class="material-icons">logout</span>
               Logout

@@ -45,4 +45,14 @@ export class VideoPlayerComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/']);
   }
+
+  onLike(): void {
+    // TODO: Add backend call for like
+    console.log('Like video:', this.video()?.id);
+  }
+
+  onDislike(): void {
+    // TODO: Add backend call for dislike
+    console.log('Dislike video:', this.video()?.id);
+  }
 }

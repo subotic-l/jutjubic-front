@@ -38,4 +38,8 @@ export class VideoService {
     // Backend mora da ima endpoint za serviranje video fajlova
     return `${this.apiUrl}/videos/${fileName}`;
   }
+
+  uploadVideo(formData: FormData): Observable<VideoPostResponse> {
+    return this.http.post<VideoPostResponse>(this.apiUrl, formData);
+  }
 }

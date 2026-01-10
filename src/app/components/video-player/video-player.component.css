@@ -112,6 +112,84 @@
   font-size: 0.95rem;
 }
 
+.video-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--bg-darker);
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn .material-icons {
+  font-size: 20px;
+}
+
+.action-btn:hover {
+  background: var(--bg-dark);
+  transform: translateY(-2px);
+}
+
+.like-btn:hover {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+}
+
+.like-btn:hover .material-icons {
+  color: var(--primary-green);
+}
+
+.dislike-btn:hover {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.dislike-btn:hover .material-icons {
+  color: var(--error);
+}
+
+.video-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-dark);
+  margin-bottom: 16px;
+}
+
+.video-stats > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.video-stats .material-icons {
+  font-size: 18px;
+  color: var(--text-tertiary);
+}
+
+.views-count .material-icons {
+  color: var(--primary-green);
+}
+
+.location .material-icons {
+  color: var(--primary-green);
+}
+
 .upload-date {
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -151,6 +229,24 @@
   .video-meta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 12px;
+  }
+
+  .video-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .video-stats {
+    gap: 16px;
+  }
+
+  .video-stats > span {
+    font-size: 0.8rem;
   }
 }
