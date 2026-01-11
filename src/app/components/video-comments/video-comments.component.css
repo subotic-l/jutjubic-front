@@ -1,0 +1,47 @@
+.comments-container {
+  margin-top: 24px;
+}
+
+.comment-card {
+  background: var(--bg-light);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.new-comment textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.new-comment button {
+  padding: 8px 16px;
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.new-comment button:hover {
+  background: darkgreen;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.loading, .error, .no-comments {
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}

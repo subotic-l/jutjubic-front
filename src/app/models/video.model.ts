@@ -12,3 +12,11 @@ export interface VideoPostResponse {
   username?: string;
   likedByCurrentUser?: boolean;
 }
+
+export interface VideoComment {
+  id: number;
+  userId: number;
+  username: string;
+  text: string;
+  createdAt: string;
+}

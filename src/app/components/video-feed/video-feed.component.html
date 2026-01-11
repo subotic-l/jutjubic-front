@@ -1,0 +1,33 @@
+<div class="feed-container">
+  @if (isLoading()) {
+    <div class="loading">Loading videos...</div>
+  } @else if (errorMessage()) {
+    <div class="error">{{ errorMessage() }}</div>
+  } @else {
+    <div class="video-card" *ngFor="let video of videos()">
+      
+      <video [src]="videoService.getVideoUrl(video.videoUrl)" controls class="video-element"></video>
+      
+      <div class="video-info">
+        <h3>{{ video.title }}</h3>
+        
+        <p>
+          By: 
+          <a (click)="goToProfile(video.userId)" class="username-link">
+            {{ video.username || 'Unknown' }}
+          </a>
+        </p>
+        
+        <div class="actions">
+          <button (click)="notifyLogin()" class="action-btn">
+            <span class="material-icons">thumb_up</span> Like
+          </button>
+          <button (click)="notifyLogin()" class="action-btn">
+            <span class="material-icons">chat_bubble</span> Comment
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

@@ -64,6 +64,8 @@
             <p>{{ video()?.description }}</p>
           </div>
         }
+
+        <textarea [(ngModel)]="newComment.asWritable()" placeholder="Write a comment..."></textarea>
       </div>
     </div>
   }

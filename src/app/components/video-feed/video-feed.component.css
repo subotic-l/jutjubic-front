@@ -1,0 +1,84 @@
+.feed-container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--bg-dark);
+  min-height: calc(100vh - 64px);
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+}
+
+.error {
+  text-align: center;
+  color: var(--error);
+  font-weight: 600;
+}
+
+.video-card {
+  background: var(--bg-light);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.video-element {
+  width: 100%;
+  max-height: 400px;
+  display: block;
+  background: black;
+}
+
+.video-info {
+  padding: 16px;
+}
+
+.video-info h3 {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+.username-link {
+  color: var(--primary-green);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.username-link:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-darker);
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn .material-icons {
+  font-size: 20px;
+}
+
+.action-btn:hover {
+  background: var(--bg-dark);
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+}
