@@ -32,6 +32,13 @@
           </div>
         </div>
         
+        @if (errorMessage()) {
+          <div class="error-message">
+            <span class="material-icons">error</span>
+            {{ errorMessage() }}
+          </div>
+        }
+        
         <div class="video-stats">
           @if (video()?.views !== undefined) {
             <span class="views-count">
