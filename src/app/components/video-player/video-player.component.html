@@ -56,6 +56,16 @@
               {{ video()!.location }}
             </span>
           }
+          @if (video()?.tags && (video()?.tags?.length ?? 0) > 0) {
+            <div class="tags-container">
+              <span class="material-icons tags-icon">tag</span>
+              <div class="tags-list">
+                @for (tag of video()?.tags; track tag) {
+                  <span class="tag">{{ tag }}</span>
+                }
+              </div>
+            </div>
+          }
         </div>
         
         @if (video()?.description) {
