@@ -1,0 +1,46 @@
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <!-- Logo -->
+      <div class="logo">
+        <a routerLink="/" class="logo-link">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="6" fill="url(#gradient)"/>
+            <path d="M12 10L22 16L12 22V10Z" fill="white"/>
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#22c55e"/>
+                <stop offset="100%" stop-color="#16a34a"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">JutJubic</span>
+        </a>
+      </div>
+
+      <!-- Auth Buttons -->
+      <div class="auth-buttons">
+        @if (!authService.isLoggedIn()) {
+          <a routerLink="/login" class="btn btn-secondary">
+            Login
+          </a>
+          <a routerLink="/register" class="btn btn-primary">
+            Sign Up
+          </a>
+        } @else {
+          <div class="user-menu">
+            <span class="username">{{ authService.currentUser()?.username || authService.currentUser()?.email }}</span>
+            <a routerLink="/upload" class="btn btn-upload">
+              <span class="material-icons">cloud_upload</span>
+              Upload Video
+            </a>
+            <button (click)="onLogout()" class="btn btn-logout">
+              <span class="material-icons">logout</span>
+              Logout
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</header>

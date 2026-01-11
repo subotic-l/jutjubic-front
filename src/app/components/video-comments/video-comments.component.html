@@ -1,0 +1,80 @@
+<div class="comments-section">
+  <h2 class="comments-title">{{ comments().length }} Comments</h2>
+
+  <!-- Add Comment Form -->
+  @if (authService.isLoggedIn()) {
+    <div class="add-comment">
+      <div class="comment-avatar">
+        <span class="material-icons">account_circle</span>
+      </div>
+      <div class="comment-input-wrapper">
+        <textarea 
+          [(ngModel)]="newCommentText"
+          placeholder="Add a comment..."
+          class="comment-input"
+          rows="1"
+          (focus)="onTextareaFocus($event)"
+          (blur)="onTextareaBlur($event)"
+        ></textarea>
+        @if (newCommentText.trim()) {
+          <div class="comment-actions">
+            <button (click)="newCommentText = ''" class="btn-cancel">Cancel</button>
+            <button (click)="addComment()" class="btn-comment">Comment</button>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="login-prompt">
+      <p>Please log in to leave a comment.</p>
+    </div>
+  }
+
+  <!-- Comments List -->
+  @if (isLoading() && comments().length === 0) {
+    <div class="loading-comments">
+      <div class="spinner"></div>
+      <p>Loading comments...</p>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">
+      <span class="material-icons">error</span>
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="comments-list">
+    @for (comment of comments(); track comment.id) {
+      <div class="comment">
+        <div class="comment-avatar">
+          <span class="material-icons">account_circle</span>
+        </div>
+        <div class="comment-content">
+          <div class="comment-header">
+            <span class="comment-author">{{ comment.username }}</span>
+            <span class="comment-date">{{ getTimeAgo(comment.createdAt) }}</span>
+          </div>
+          <p class="comment-text">{{ comment.text }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Load More Button -->
+  @if (hasMoreComments() && !isLoading()) {
+    <div class="load-more">
+      <button (click)="loadMoreComments()" class="btn-load-more">
+        <span class="material-icons">expand_more</span>
+        Show more comments
+      </button>
+    </div>
+  }
+
+  @if (isLoading() && comments().length > 0) {
+    <div class="loading-more">
+      <div class="spinner-small"></div>
+    </div>
+  }
+</div>

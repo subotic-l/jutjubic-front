@@ -1,0 +1,85 @@
+<div class="video-player-container">
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner-large"></div>
+    </div>
+  } @else if (video()) {
+    <div class="video-player">
+      <div class="video-wrapper">
+        <video controls [src]="videoUrl()" class="video-element">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      <div class="video-details">
+        
+        <h1 class="video-title">{{ video()?.title }}</h1>
+        
+        <div class="video-meta">
+          <div class="author-info">
+            <span class="material-icons">account_circle</span>
+            <span class="author-name">{{ video()?.username || 'Unknown' }}</span>
+          </div>
+          
+          <div class="video-actions">
+            <button (click)="onLike()" class="action-btn like-btn" [class.liked]="video()?.likedByCurrentUser">
+              <span class="material-icons">thumb_up</span>
+              <span class="action-label">Like</span>
+              @if (video()?.likes !== undefined) {
+                <span class="likes-count">{{ video()!.likes }}</span>
+              }
+            </button>
+          </div>
+        </div>
+        
+        @if (errorMessage()) {
+          <div class="error-message">
+            <span class="material-icons">error</span>
+            {{ errorMessage() }}
+          </div>
+        }
+        
+        <div class="video-stats">
+          @if (video()?.views !== undefined) {
+            <span class="views-count">
+              <span class="material-icons">visibility</span>
+              {{ video()!.views }} views
+            </span>
+          }
+          <span class="upload-date">
+            <span class="material-icons">calendar_today</span>
+            {{ video()!.createdAt | date:'medium' }}
+          </span>
+          @if (video()?.location) {
+            <span class="location">
+              <span class="material-icons">location_on</span>
+              {{ video()!.location }}
+            </span>
+          }
+          @if (video()?.tags && (video()?.tags?.length ?? 0) > 0) {
+            <div class="tags-container">
+              <span class="material-icons tags-icon">tag</span>
+              <div class="tags-list">
+                @for (tag of video()?.tags; track tag) {
+                  <span class="tag">{{ tag }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        
+        @if (video()?.description) {
+          <div class="video-description">
+            <h3>Description</h3>
+            <p>{{ video()?.description }}</p>
+          </div>
+        }
+      </div>
+      
+      <!-- Comments Section -->
+      @if (video()?.id) {
+        <app-video-comments [videoId]="video()!.id"></app-video-comments>
+      }
+    </div>
+  }
+</div>
