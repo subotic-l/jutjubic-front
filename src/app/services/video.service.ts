@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { VideoPostResponse } from '../models/video.model';
+import { VideoPostResponse, VideoComment, VideoCommentRequest } from '../models/video.model';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,7 @@ import { VideoPostResponse } from '../models/video.model';
 export class VideoService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/videos';
+  private commentsUrl = 'http://localhost:8080/api/comments';
 
   getAllVideos(): Observable<VideoPostResponse[]> {
     return this.http.get<VideoPostResponse[]>(this.apiUrl);
@@ -45,5 +46,15 @@ export class VideoService {
 
   toggleLike(videoId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${videoId}/like`, {});
+  }
+
+  // Comments API
+  getVideoComments(videoId: number, page: number = 0, size: number = 10): Observable<VideoComment[]> {
+    return this.http.get<VideoComment[]>(`${this.commentsUrl}/${videoId}?page=${page}&size=${size}`);
+  }
+
+  addVideoComment(videoId: number, text: string): Observable<VideoComment> {
+    const request: VideoCommentRequest = { text, videoId };
+    return this.http.post<VideoComment>(this.commentsUrl, request);
   }
 }

@@ -4,11 +4,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { VideoService } from '../../services/video.service';
 import { AuthService } from '../../services/auth.service';
 import { VideoPostResponse } from '../../models/video.model';
+import { VideoCommentsComponent } from '../video-comments/video-comments.component';
 
 @Component({
   selector: 'app-video-player',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, VideoCommentsComponent],
   templateUrl: './video-player.component.html',
   styleUrl: './video-player.component.css'
 })

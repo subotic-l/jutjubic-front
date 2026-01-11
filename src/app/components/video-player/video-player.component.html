@@ -65,6 +65,11 @@
           </div>
         }
       </div>
+      
+      <!-- Comments Section -->
+      @if (video()?.id) {
+        <app-video-comments [videoId]="video()!.id"></app-video-comments>
+      }
     </div>
   }
 </div>
