@@ -42,4 +42,8 @@ export class VideoService {
   uploadVideo(formData: FormData): Observable<VideoPostResponse> {
     return this.http.post<VideoPostResponse>(this.apiUrl, formData);
   }
+
+  toggleLike(videoId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${videoId}/like`, {});
+  }
 }

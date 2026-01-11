@@ -150,13 +150,20 @@
   color: var(--primary-green);
 }
 
-.dislike-btn:hover {
-  border-color: var(--error);
-  color: var(--error);
+.like-btn.liked {
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: white;
 }
 
-.dislike-btn:hover .material-icons {
-  color: var(--error);
+.like-btn.liked .material-icons {
+  color: white;
+}
+
+.likes-count {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-left: 4px;
 }
 
 .video-stats {

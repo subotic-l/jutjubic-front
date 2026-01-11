@@ -22,13 +22,12 @@
           </div>
           
           <div class="video-actions">
-            <button (click)="onLike()" class="action-btn like-btn">
+            <button (click)="onLike()" class="action-btn like-btn" [class.liked]="video()?.likedByCurrentUser">
               <span class="material-icons">thumb_up</span>
               <span class="action-label">Like</span>
-            </button>
-            <button (click)="onDislike()" class="action-btn dislike-btn">
-              <span class="material-icons">thumb_down</span>
-              <span class="action-label">Dislike</span>
+              @if (video()?.likes !== undefined) {
+                <span class="likes-count">{{ video()!.likes }}</span>
+              }
             </button>
           </div>
         </div>

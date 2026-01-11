@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VideoService } from '../../services/video.service';
 import { VideoPostResponse } from '../../models/video.model';
@@ -15,15 +15,19 @@ export class VideoPlayerComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private videoService = inject(VideoService);
+  private platformId = inject(PLATFORM_ID);
 
   video = signal<VideoPostResponse | null>(null);
   isLoading = signal<boolean>(true);
   videoUrl = signal<string>('');
 
   ngOnInit(): void {
-    const videoId = this.route.snapshot.paramMap.get('id');
-    if (videoId) {
-      this.loadVideo(+videoId);
+    // Only load video on browser (client-side) to avoid duplicate API calls during SSR
+    if (isPlatformBrowser(this.platformId)) {
+      const videoId = this.route.snapshot.paramMap.get('id');
+      if (videoId) {
+        this.loadVideo(+videoId);
+      }
     }
   }
 
@@ -47,12 +51,24 @@ export class VideoPlayerComponent implements OnInit {
   }
 
   onLike(): void {
-    // TODO: Add backend call for like
-    console.log('Like video:', this.video()?.id);
-  }
+    const video = this.video();
+    if (!video) return;
 
-  onDislike(): void {
-    // TODO: Add backend call for dislike
-    console.log('Dislike video:', this.video()?.id);
+    this.videoService.toggleLike(video.id).subscribe({
+      next: (response) => {
+        // Update video with new like count and liked status if backend returns it
+        this.video.update(v => {
+          if (!v) return v;
+          return {
+            ...v,
+            likes: response.likesCount !== undefined ? response.likesCount : v.likes,
+            likedByCurrentUser: response.likedByCurrentUser !== undefined ? response.likedByCurrentUser : !v.likedByCurrentUser
+          };
+        });
+      },
+      error: (error) => {
+        console.error('Error toggling like:', error);
+      }
+    });
   }
 }
