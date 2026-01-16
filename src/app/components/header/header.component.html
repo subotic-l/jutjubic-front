@@ -20,6 +20,10 @@
 
       <!-- Auth Buttons -->
       <div class="auth-buttons">
+        <button (click)="toggleMap()" class="btn btn-map" title="Toggle Map">
+          <span class="material-icons">map</span>
+        </button>
+
         @if (!authService.isLoggedIn()) {
           <a routerLink="/login" class="btn btn-secondary">
             Login
@@ -43,4 +47,7 @@
       </div>
     </div>
   </div>
+  @if (showMap()) {
+    <app-map></app-map>
+  }
 </header>
