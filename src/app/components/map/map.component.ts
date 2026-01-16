@@ -1,6 +1,10 @@
-import { Component, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, Inject, PLATFORM_ID, NgZone, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MapService } from '../../services/map.service';
+import { VideoService } from '../../services/video.service';
+import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { VideoPostResponse } from '../../models/video.model';
 
 @Component({
   selector: 'app-map',
@@ -11,9 +15,17 @@ import { MapService } from '../../services/map.service';
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
   private leafletMap?: any;
+  private markers: any[] = [];
+  private allVideos: VideoPostResponse[] = [];
+  
+  isLoading = signal(false);
+  currentTimeFilter = signal('all');
 
   constructor(
     private mapService: MapService,
+    private videoService: VideoService,
+    private router: Router,
+    private ngZone: NgZone,
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
@@ -24,25 +36,129 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private async initializeMap(): Promise<void> {
     if (isPlatformBrowser(this.platformId)) {
       const L = await import('leaflet');
-      this.leafletMap = await this.mapService.initMap('map-container');
+      
+      let center: [number, number] = [44.7866, 20.4489]; // Default: Belgrade
+      
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        center = [position.coords.latitude, position.coords.longitude];
+      } catch (error) {
+        console.warn('Geolocation failed or denied, using default center:', error);
+      }
+
+      this.leafletMap = await this.mapService.initMap('map-container', center);
       
       if (!this.leafletMap) return;
 
-      // Fix for Leaflet marker icons not showing correctly in Angular/Webpack
-      const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
-      const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
-      const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+      // Fix for Leaflet marker icons
       const iconDefault = L.icon({
-        iconRetinaUrl,
-        iconUrl,
-        shadowUrl,
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
-        tooltipAnchor: [16, -28],
         shadowSize: [41, 41]
       });
       L.Marker.prototype.options.icon = iconDefault;
+
+      await this.loadInitialData(L);
+    }
+  }
+
+  private async loadInitialData(L: any): Promise<void> {
+    this.isLoading.set(true);
+    try {
+      this.allVideos = await firstValueFrom(this.videoService.getMapVideos());
+      this.renderMarkers(L);
+      this.setupPopupClickListener();
+    } catch (error) {
+      console.error('Error loading map videos:', error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  onFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.currentTimeFilter.set(select.value);
+    this.applyFilters();
+  }
+
+  private async applyFilters(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    
+    const L = await import('leaflet');
+    this.renderMarkers(L);
+  }
+
+  private renderMarkers(L: any): void {
+    if (!this.leafletMap) return;
+
+    // Remove existing markers
+    this.markers.forEach(m => m.remove());
+    this.markers = [];
+
+    const now = new Date();
+    const filteredVideos = this.allVideos.filter(video => {
+      if (!video.createdAt) return false;
+      const uploadDate = new Date(video.createdAt);
+      
+      switch (this.currentTimeFilter()) {
+        case '30days':
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(now.getDate() - 30);
+          return uploadDate >= thirtyDaysAgo;
+        case 'thisYear':
+          const startOfYear = new Date(now.getFullYear(), 0, 1);
+          return uploadDate >= startOfYear;
+        default:
+          return true;
+      }
+    });
+
+    filteredVideos.forEach(video => {
+      if (video.latitude !== undefined && video.longitude !== undefined) {
+        const marker = L.marker([video.latitude, video.longitude]).addTo(this.leafletMap);
+        
+        const popupContent = `
+          <div class="map-popup">
+            <img src="${this.videoService.getThumbnailUrl(video.thumbnailPath)}" class="popup-thumb">
+            <div class="popup-info">
+              <h4 class="popup-title">${video.title}</h4>
+              <p class="popup-author">By: ${video.username || 'Unknown'}</p>
+              <p class="popup-views">${video.views || 0} views</p>
+              <button class="btn-popup-view" data-id="${video.id}">Watch Video</button>
+            </div>
+          </div>
+        `;
+        
+        marker.bindPopup(popupContent, {
+          maxWidth: 250,
+          className: 'custom-leaflet-popup'
+        });
+
+        this.markers.push(marker);
+      }
+    });
+  }
+
+  private setupPopupClickListener(): void {
+    const container = document.getElementById('map-container');
+    if (container) {
+      container.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('btn-popup-view')) {
+          const id = target.getAttribute('data-id');
+          if (id) {
+            this.ngZone.run(() => {
+              this.router.navigate(['/video', id]);
+            });
+          }
+        }
+      });
     }
   }
 

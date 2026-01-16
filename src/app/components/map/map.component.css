@@ -34,3 +34,130 @@
   width: 100%;
   height: 100%;
 }
+
+/* Leaflet Popup overrides */
+:host ::ng-deep .leaflet-popup-content-wrapper {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+}
+
+:host ::ng-deep .leaflet-popup-tip {
+  background-color: var(--bg-light);
+}
+
+:host ::ng-deep .leaflet-popup-content {
+  margin: 0;
+  width: 200px !important;
+}
+
+:host ::ng-deep .map-popup {
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .popup-thumb {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--primary-green);
+}
+
+:host ::ng-deep .popup-info {
+  padding: 12px;
+}
+
+:host ::ng-deep .popup-title {
+  font-size: 1rem;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:host ::ng-deep .popup-author {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 4px 0;
+}
+
+:host ::ng-deep .popup-views {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin: 0 0 10px 0;
+}
+
+:host ::ng-deep .btn-popup-view {
+  width: 100%;
+  padding: 8px;
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+:host ::ng-deep .btn-popup-view:hover {
+  background-color: var(--primary-green-dark);
+}
+
+:host ::ng-deep .leaflet-popup-close-button {
+  color: var(--text-secondary) !important;
+  padding: 8px !important;
+}
+
+.map-filters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.filter-select {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color var(--transition-normal);
+}
+
+.filter-select:hover:not(:disabled) {
+  border-color: var(--primary-green);
+}
+
+.filter-select:focus {
+  border-color: var(--primary-green);
+  outline: none;
+}
+
+.map-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(10, 10, 10, 0.7);
+  z-index: 1001;
+  border-radius: 12px;
+}

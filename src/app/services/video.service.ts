@@ -9,10 +9,15 @@ import { VideoPostResponse, VideoComment, VideoCommentRequest } from '../models/
 export class VideoService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/videos';
+  private mapUrl = 'http://localhost:8080/api/map';
   private commentsUrl = 'http://localhost:8080/api/comments';
 
   getAllVideos(): Observable<VideoPostResponse[]> {
     return this.http.get<VideoPostResponse[]>(this.apiUrl);
+  }
+
+  getMapVideos(): Observable<VideoPostResponse[]> {
+    return this.http.get<VideoPostResponse[]>(this.mapUrl);
   }
 
   getVideoById(id: number): Observable<VideoPostResponse> {

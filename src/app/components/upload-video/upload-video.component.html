@@ -174,10 +174,10 @@
             <span class="material-icons">my_location</span>
             Include My Location
           </button>
-          @if (includeLocation && location) {
+          @if (includeLocation && latitude !== null && longitude !== null) {
             <span class="location-text">
               <span class="material-icons">check_circle</span>
-              Location obtained
+              Location: {{ latitude.toFixed(4) }}, {{ longitude.toFixed(4) }}
             </span>
           }
         </div>

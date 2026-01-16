@@ -1,8 +1,30 @@
 <div class="map-page-container fade-in">
   <div class="map-header">
     <h1 class="map-title">Explore Map</h1>
+    
+    <div class="map-filters">
+      <div class="filter-group">
+        <label for="timeFilter" class="filter-label">Time Period:</label>
+        <select 
+          id="timeFilter" 
+          class="filter-select" 
+          (change)="onFilterChange($event)"
+          [disabled]="isLoading()"
+        >
+          <option value="all">All Time</option>
+          <option value="30days">Last 30 Days</option>
+          <option value="thisYear">This Year</option>
+        </select>
+      </div>
+    </div>
   </div>
+  
   <div class="map-wrapper">
     <div id="map-container" class="map-container"></div>
+    @if (isLoading()) {
+      <div class="map-loader">
+        <div class="spinner-large"></div>
+      </div>
+    }
   </div>
 </div>
