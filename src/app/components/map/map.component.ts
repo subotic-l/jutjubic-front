@@ -71,14 +71,80 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private async loadInitialData(L: any): Promise<void> {
     this.isLoading.set(true);
     try {
-      this.allVideos = await firstValueFrom(this.videoService.getMapVideos());
+      await this.loadVideosForCurrentView();
       this.renderMarkers(L);
       this.setupPopupClickListener();
+      this.setupMapEventListeners();
     } catch (error) {
       console.error('Error loading map videos:', error);
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  private async loadVideosForCurrentView(): Promise<void> {
+    if (!this.leafletMap) return;
+    
+    const bounds = this.leafletMap.getBounds();
+    const tiles = this.calculateTiles(bounds);
+    
+    this.allVideos = await firstValueFrom(
+      this.videoService.getMapVideos(tiles)
+    );
+  }
+
+  private calculateTiles(bounds: any): Array<{x: number, y: number, zoom: number}> {
+    const ZOOM = 12; // Isti zoom level kao na backend-u
+    
+    const minLat = bounds.getSouth();
+    const maxLat = bounds.getNorth();
+    const minLon = bounds.getWest();
+    const maxLon = bounds.getEast();
+    
+    // Konvertuj geo koordinate u tile koordinate (Leaflet/OSM tile sistem)
+    const minTileX = this.lonToTile(minLon, ZOOM);
+    const maxTileX = this.lonToTile(maxLon, ZOOM);
+    const minTileY = this.latToTile(maxLat, ZOOM); // Y osa je obrnuta
+    const maxTileY = this.latToTile(minLat, ZOOM);
+    
+    // Generisi sve tile-ove u vidljivom delu mape
+    const tiles: Array<{x: number, y: number, zoom: number}> = [];
+    for (let x = minTileX; x <= maxTileX; x++) {
+      for (let y = minTileY; y <= maxTileY; y++) {
+        tiles.push({ x, y, zoom: ZOOM });
+      }
+    }
+    
+    return tiles;
+  }
+
+  private lonToTile(lon: number, zoom: number): number {
+    return Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+  }
+
+  private latToTile(lat: number, zoom: number): number {
+    return Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+  }
+
+  private setupMapEventListeners(): void {
+    if (!this.leafletMap) return;
+    
+    let moveTimeout: any;
+    this.leafletMap.on('moveend', async () => {
+      clearTimeout(moveTimeout);
+      moveTimeout = setTimeout(async () => {
+        const L = await import('leaflet');
+        this.isLoading.set(true);
+        try {
+          await this.loadVideosForCurrentView();
+          this.renderMarkers(L);
+        } catch (error) {
+          console.error('Error reloading videos:', error);
+        } finally {
+          this.isLoading.set(false);
+        }
+      }, 300); // Debounce 300ms
+    });
   }
 
   onFilterChange(event: Event): void {

@@ -16,8 +16,8 @@ export class VideoService {
     return this.http.get<VideoPostResponse[]>(this.apiUrl);
   }
 
-  getMapVideos(): Observable<VideoPostResponse[]> {
-    return this.http.get<VideoPostResponse[]>(this.mapUrl);
+  getMapVideos(tiles: Array<{x: number, y: number, zoom: number}>): Observable<VideoPostResponse[]> {
+    return this.http.post<VideoPostResponse[]>(`${this.mapUrl}/tiles`, { tiles });
   }
 
   getVideoById(id: number): Observable<VideoPostResponse> {
