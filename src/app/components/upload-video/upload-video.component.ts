@@ -19,7 +19,8 @@ export class UploadVideoComponent {
   tags: string[] = [];
   thumbnail: File | null = null;
   video: File | null = null;
-  location = '';
+  latitude: number | null = null;
+  longitude: number | null = null;
   includeLocation = false;
   
   thumbnailPreview = signal<string | null>(null);
@@ -130,31 +131,8 @@ export class UploadVideoComponent {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
       
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      
-      // Use reverse geocoding to get city and country
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=en`
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || '';
-        const country = data.address?.country || '';
-        
-        if (city && country) {
-          this.location = `${city}, ${country}`;
-        } else if (country) {
-          this.location = country;
-        } else {
-          // Fallback to coordinates if geocoding fails
-          this.location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-        }
-      } else {
-        // Fallback to coordinates if API fails
-        this.location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-      }
+      this.latitude = position.coords.latitude;
+      this.longitude = position.coords.longitude;
       
       this.includeLocation = true;
       this.successMessage.set('Location successfully obtained');
@@ -219,8 +197,9 @@ export class UploadVideoComponent {
       formData.append('thumbnail', this.thumbnail!);
       formData.append('video', this.video!);
       
-      if (this.includeLocation && this.location) {
-        formData.append('location', this.location);
+      if (this.includeLocation && this.latitude !== null && this.longitude !== null) {
+        formData.append('latitude', this.latitude.toString());
+        formData.append('longitude', this.longitude.toString());
       }
       
       await firstValueFrom(this.videoService.uploadVideo(formData));

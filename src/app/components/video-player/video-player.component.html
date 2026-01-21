@@ -50,10 +50,10 @@
             <span class="material-icons">calendar_today</span>
             {{ video()!.createdAt | date:'medium' }}
           </span>
-          @if (video()?.location) {
+          @if (video()?.latitude !== undefined && video()?.longitude !== undefined) {
             <span class="location">
               <span class="material-icons">location_on</span>
-              {{ video()!.location }}
+              {{ video()!.latitude }}, {{ video()!.longitude }}
             </span>
           }
           @if (video()?.tags && (video()?.tags?.length ?? 0) > 0) {
