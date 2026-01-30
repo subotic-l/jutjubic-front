@@ -12,6 +12,18 @@ export interface VideoPostResponse {
   latitude?: number;
   username?: string;
   likedByCurrentUser?: boolean;
+  scheduledReleaseTime?: string;
+  videoDurationSeconds?: number;
+}
+
+export interface StreamInfoResponse {
+  isScheduled: boolean;
+  hasStarted: boolean;
+  hasEnded: boolean;
+  scheduledReleaseTime?: string;
+  videoDurationSeconds?: number;
+  currentOffsetSeconds?: number;
+  serverTime: string;
 }
 
 export interface VideoComment {

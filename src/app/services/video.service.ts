@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { VideoPostResponse, VideoComment, VideoCommentRequest } from '../models/video.model';
+import { VideoPostResponse, VideoComment, VideoCommentRequest, StreamInfoResponse } from '../models/video.model';
 
 @Injectable({
   providedIn: 'root'
@@ -61,5 +61,9 @@ export class VideoService {
   addVideoComment(videoId: number, text: string): Observable<VideoComment> {
     const request: VideoCommentRequest = { text, videoId };
     return this.http.post<VideoComment>(this.commentsUrl, request);
+  }
+
+  getStreamInfo(videoId: number): Observable<StreamInfoResponse> {
+    return this.http.get<StreamInfoResponse>(`${this.apiUrl}/${videoId}/stream-info`);
   }
 }
