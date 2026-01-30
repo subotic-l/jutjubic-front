@@ -23,6 +23,11 @@ export class UploadVideoComponent {
   longitude: number | null = null;
   includeLocation = false;
   
+  // Scheduled release fields
+  scheduledReleaseTime: string | null = null;
+  videoDurationSeconds: number | null = null;
+  isScheduled = false;
+  
   thumbnailPreview = signal<string | null>(null);
   videoFileName = signal<string | null>(null);
   
@@ -85,7 +90,22 @@ export class UploadVideoComponent {
       this.video = file;
       this.videoFileName.set(file.name);
       this.errorMessage.set(null);
+      
+      // Get video duration
+      this.getVideoDuration(file);
     }
+  }
+
+  getVideoDuration(file: File): void {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      this.videoDurationSeconds = Math.floor(video.duration);
+    };
+    
+    video.src = URL.createObjectURL(file);
   }
 
   addTag(): void {
@@ -200,6 +220,15 @@ export class UploadVideoComponent {
       if (this.includeLocation && this.latitude !== null && this.longitude !== null) {
         formData.append('latitude', this.latitude.toString());
         formData.append('longitude', this.longitude.toString());
+      }
+      
+      // Add scheduled release fields if scheduled
+      if (this.isScheduled && this.scheduledReleaseTime) {
+        formData.append('scheduledReleaseTime', this.scheduledReleaseTime);
+      }
+      
+      if (this.videoDurationSeconds !== null) {
+        formData.append('videoDurationSeconds', this.videoDurationSeconds.toString());
       }
       
       await firstValueFrom(this.videoService.uploadVideo(formData));
