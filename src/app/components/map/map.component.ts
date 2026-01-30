@@ -94,7 +94,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   private calculateTiles(bounds: any): Array<{x: number, y: number, zoom: number}> {
-    const ZOOM = 12; // Isti zoom level kao na backend-u
+    const mapZoom: number = this.leafletMap.getZoom();
+
+    const ZOOM = Math.min(mapZoom, 12);
     
     const minLat = bounds.getSouth();
     const maxLat = bounds.getNorth();
