@@ -121,11 +121,17 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   private lonToTile(lon: number, zoom: number): number {
-    return Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+    const tiles = Math.pow(2, zoom);
+    const x = Math.floor((lon + 180) / 360 * tiles);
+    // Clampuj vrednost na validni opseg [0, tiles-1]
+    return Math.max(0, Math.min(tiles - 1, x));
   }
 
   private latToTile(lat: number, zoom: number): number {
-    return Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+    const tiles = Math.pow(2, zoom);
+    const y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * tiles);
+    // Clampuj vrednost na validni opseg [0, tiles-1]
+    return Math.max(0, Math.min(tiles - 1, y));
   }
 
   private setupMapEventListeners(): void {
