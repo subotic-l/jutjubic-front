@@ -8,7 +8,8 @@ export interface VideoPostResponse {
   createdAt: string;
   views?: number;
   likes?: number;
-  location?: string;
+  longitude?: number;
+  latitude?: number;
   username?: string;
   likedByCurrentUser?: boolean;
 }

@@ -150,6 +150,27 @@
   transform: translateY(-1px);
 }
 
+/* Map Toggle Button */
+.btn-map {
+  background: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: var(--transition-normal);
+}
+
+.btn-map:hover {
+  background: var(--bg-lighter);
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+  cursor: pointer;
+}
+
 /* User Menu */
 .user-menu {
   display: flex;
