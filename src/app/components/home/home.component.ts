@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { VideoService } from '../../services/video.service';
-import { VideoPostResponse } from '../../models/video.model';
+import { VideoPostResponse, PopularVideoDto } from '../../models/video.model';
 
 @Component({
   selector: 'app-home',
@@ -16,13 +16,34 @@ export class HomeComponent implements OnInit {
   private router = inject(Router);
 
   videos = signal<VideoPostResponse[]>([]);
+  popularVideos = signal<PopularVideoDto[]>([]);
   isLoading = signal<boolean>(true);
   displayedVideos = signal<VideoPostResponse[]>([]);
   videosPerPage = 12;
   currentPage = 0;
 
   ngOnInit(): void {
+    this.loadPopularVideos();
     this.loadVideos();
+  }
+
+  loadPopularVideos(): void {
+    this.videoService.getPopularVideos().subscribe({
+      next: (response) => {
+        console.log('Popular videos response:', response);
+        console.log('Popular videos array:', response.popularVideos);
+        // Mapiranje uploaderUsername u username
+        const mappedVideos = response.popularVideos.map((video: any) => ({
+          ...video,
+          username: video.uploaderUsername
+        }));
+        this.popularVideos.set(mappedVideos);
+      },
+      error: (error) => {
+        console.error('Error loading popular videos:', error);
+        // Ako nema popularnih videa, nastavi sa normalnim prikazom
+      }
+    });
   }
 
   loadVideos(): void {
@@ -54,6 +75,10 @@ export class HomeComponent implements OnInit {
   }
 
   getThumbnailUrl(thumbnailPath: string): string {
+    return this.videoService.getThumbnailUrl(thumbnailPath);
+  }
+
+  getPopularThumbnailUrl(thumbnailPath: string): string {
     return this.videoService.getThumbnailUrl(thumbnailPath);
   }
 

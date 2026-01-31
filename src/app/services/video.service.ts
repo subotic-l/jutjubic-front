@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { VideoPostResponse, VideoComment, VideoCommentRequest, StreamInfoResponse } from '../models/video.model';
+import { VideoPostResponse, VideoComment, VideoCommentRequest, StreamInfoResponse, PopularVideosResponse } from '../models/video.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,7 @@ export class VideoService {
   private apiUrl = 'http://localhost:8080/api/videos';
   private mapUrl = 'http://localhost:8080/api/map';
   private commentsUrl = 'http://localhost:8080/api/comments';
+  private popularVideosUrl = 'http://localhost:8080/api/popular-videos';
 
   getAllVideos(): Observable<VideoPostResponse[]> {
     return this.http.get<VideoPostResponse[]>(this.apiUrl);
@@ -65,5 +66,9 @@ export class VideoService {
 
   getStreamInfo(videoId: number): Observable<StreamInfoResponse> {
     return this.http.get<StreamInfoResponse>(`${this.apiUrl}/${videoId}/stream-info`);
+  }
+
+  getPopularVideos(): Observable<PopularVideosResponse> {
+    return this.http.get<PopularVideosResponse>(this.popularVideosUrl);
   }
 }

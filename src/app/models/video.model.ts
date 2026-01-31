@@ -38,3 +38,19 @@ export interface VideoCommentRequest {
   text: string;
   videoId: number;
 }
+
+export interface PopularVideoDto {
+  id: number;
+  title: string;
+  description: string;
+  thumbnailPath: string;
+  popularityScore: number;
+  totalViews: number;
+  likes: number;
+  username: string;
+}
+
+export interface PopularVideosResponse {
+  reportDate: string;
+  popularVideos: PopularVideoDto[];
+}
