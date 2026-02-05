@@ -105,10 +105,21 @@
         }
       </div>
       
-      <!-- Comments Section -->
-      @if (video()?.id) {
-        <app-video-comments [videoId]="video()!.id"></app-video-comments>
-      }
+      <!-- Chat and Comments Section -->
+      <div class="content-sections">
+        @if (video()?.id) {
+          <div class="chat-section">
+            <h3>Live Chat</h3>
+            <app-chat [streamId]="video()!.id"></app-chat>
+          </div>
+        }
+        
+        @if (video()?.id) {
+          <div class="comments-section">
+            <app-video-comments [videoId]="video()!.id"></app-video-comments>
+          </div>
+        }
+      </div>
     </div>
   } @else if (errorMessage()) {
     <!-- Error State -->

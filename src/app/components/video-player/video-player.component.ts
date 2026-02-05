@@ -5,11 +5,12 @@ import { VideoService } from '../../services/video.service';
 import { AuthService } from '../../services/auth.service';
 import { VideoPostResponse, StreamInfoResponse } from '../../models/video.model';
 import { VideoCommentsComponent } from '../video-comments/video-comments.component';
+import { ChatComponent } from '../chat/chat.component';
 
 @Component({
   selector: 'app-video-player',
   standalone: true,
-  imports: [CommonModule, VideoCommentsComponent],
+  imports: [CommonModule, VideoCommentsComponent, ChatComponent],
   templateUrl: './video-player.component.html',
   styleUrl: './video-player.component.css'
 })

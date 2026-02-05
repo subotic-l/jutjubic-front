@@ -529,4 +529,48 @@
   .video-stats > span {
     font-size: 0.8rem;
   }
+
+  .content-sections {
+    flex-direction: column;
+  }
+
+  .chat-section,
+  .comments-section {
+    width: 100%;
+  }
+}
+
+.content-sections {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.chat-section,
+.comments-section {
+  flex: 1;
+}
+
+.chat-section h3,
+.comments-section h3 {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.chat-section {
+  background: var(--bg-light);
+  border: 1px solid var(--border-dark);
+  border-radius: 12px;
+  padding: 20px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-section app-chat {
+  flex: 1;
+  display: flex;
+  min-height: 0;
 }
