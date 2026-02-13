@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 import { Subject } from 'rxjs';
 import { ChatMessage } from '../models/chat-message.model';
 
@@ -15,7 +14,7 @@ export class ChatService {
 
   connect(streamId: number): void {
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws-chat'),
+      brokerURL: 'ws://localhost/ws-chat',
       reconnectDelay: 5000,
       onConnect: () => {
         this.subscription = this.client!.subscribe(

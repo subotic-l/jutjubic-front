@@ -8,10 +8,10 @@ import { VideoPostResponse, VideoComment, VideoCommentRequest, StreamInfoRespons
 })
 export class VideoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/videos';
-  private mapUrl = 'http://localhost:8080/api/map';
-  private commentsUrl = 'http://localhost:8080/api/comments';
-  private popularVideosUrl = 'http://localhost:8080/api/popular-videos';
+  private apiUrl = 'http://localhost/api/videos';
+  private mapUrl = 'http://localhost/api/map';
+  private commentsUrl = 'http://localhost/api/comments';
+  private popularVideosUrl = 'http://localhost/api/popular-videos';
 
   getAllVideos(): Observable<VideoPostResponse[]> {
     return this.http.get<VideoPostResponse[]>(this.apiUrl);
