@@ -33,6 +33,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   streamMessage = signal<string | null>(null);
   showVideo = signal<boolean>(true);
   streamStatus = signal<'not-started' | 'live' | 'ended' | 'regular'>('regular');
+  
+  // Track user's pause state to prevent auto-play during sync
+  userPausedVideo = signal<boolean>(false);
+  // Track if view has been counted in this session
+  viewCounted = signal<boolean>(false);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -48,6 +53,25 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       clearInterval(this.syncInterval);
     }
   }
+  
+  // Setup video event listeners to track user pause/play
+  setupVideoEventListeners(): void {
+    setTimeout(() => {
+      const videoEl = this.videoElement?.nativeElement;
+      if (videoEl) {
+        videoEl.addEventListener('pause', () => {
+          // Only mark as user paused if video is not at the end
+          if (!videoEl.ended) {
+            this.userPausedVideo.set(true);
+          }
+        });
+        
+        videoEl.addEventListener('play', () => {
+          this.userPausedVideo.set(false);
+        });
+      }
+    }, 100);
+  }
 
   loadVideo(id: number): void {
     this.videoService.getVideoById(id).subscribe({
@@ -60,7 +84,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
           this.loadStreamInfo(id);
         } else {
           this.isLoading.set(false);
+          this.setupVideoEventListeners();
         }
+        
+        // Mark that view has been counted
+        this.viewCounted.set(true);
       },
       error: (error) => {
         console.error('Error loading video:', error);
@@ -114,6 +142,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
             timeStyle: 'short'
           });
           this.streamMessage.set(`This live stream hasn't started yet. It will begin at ${startTime}`);
+          
+          // Start periodic check to auto-detect when stream starts
+          this.startPeriodicSync(videoId);
         } else if (streamInfo.hasEnded) {
           this.streamStatus.set('ended');
           this.showVideo.set(true);
@@ -122,8 +153,31 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
           this.streamStatus.set('live');
           this.showVideo.set(true);
           this.streamMessage.set('LIVE - Synchronized streaming');
-          this.synchronizeVideo(streamInfo);
-          this.startPeriodicSync(videoId);
+          
+          // Load full video data if not already loaded (to increment view count once)
+          if (!this.viewCounted()) {
+            this.videoService.getVideoById(videoId).subscribe({
+              next: (video) => {
+                this.video.set(video);
+                this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
+                this.viewCounted.set(true);
+                this.synchronizeVideo(streamInfo);
+                this.startPeriodicSync(videoId);
+                this.setupVideoEventListeners();
+              },
+              error: (error) => {
+                console.error('Error loading video data:', error);
+                // Continue with stream info even if full video load fails
+                this.synchronizeVideo(streamInfo);
+                this.startPeriodicSync(videoId);
+                this.setupVideoEventListeners();
+              }
+            });
+          } else {
+            this.synchronizeVideo(streamInfo);
+            this.startPeriodicSync(videoId);
+            this.setupVideoEventListeners();
+          }
         }
       },
       error: (error) => {
@@ -176,12 +230,15 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
         if (videoEl) {
           const targetTime = streamInfo.currentOffsetSeconds!;
           const currentTime = videoEl.currentTime;
+          const wasPaused = videoEl.paused;
           
+          // Sync time if difference is significant
           if (Math.abs(currentTime - targetTime) > 2) {
             videoEl.currentTime = targetTime;
           }
           
-          if (videoEl.paused) {
+          // Only auto-play if user hasn't explicitly paused the video
+          if (wasPaused && !this.userPausedVideo()) {
             videoEl.play().catch(err => console.log('Auto-play prevented:', err));
           }
         }
@@ -190,6 +247,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }
 
   startPeriodicSync(videoId: number): void {
+    // Prevent duplicate sync intervals
+    if (this.syncInterval) {
+      return;
+    }
+    
     this.syncInterval = setInterval(() => {
       this.videoService.getStreamInfo(videoId).subscribe({
         next: (streamInfo) => {
@@ -204,9 +266,30 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
             }
           } else if (streamInfo.hasStarted) {
             this.streamStatus.set('live');
+            const wasNotShowing = !this.showVideo();
             this.showVideo.set(true);
             this.streamMessage.set('LIVE - Synchronized streaming');
+            
+            // Load full video data once when stream goes live (to increment view count)
+            if (wasNotShowing && !this.viewCounted()) {
+              this.videoService.getVideoById(videoId).subscribe({
+                next: (video) => {
+                  this.video.set(video);
+                  this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
+                  this.viewCounted.set(true);
+                },
+                error: (error) => {
+                  console.error('Error loading video data:', error);
+                }
+              });
+            }
+            
             this.synchronizeVideo(streamInfo);
+            
+            // Setup event listeners if video just became visible
+            if (wasNotShowing) {
+              this.setupVideoEventListeners();
+            }
           } else {
             this.streamStatus.set('not-started');
             this.showVideo.set(false);
@@ -222,6 +305,15 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
         }
       });
     }, 2000);
+  }
+  
+  // Check if stream has started without incrementing view count
+  checkIfStarted(): void {
+    const videoId = this.video()?.id;
+    if (!videoId) return;
+    
+    this.isLoading.set(true);
+    this.loadStreamInfo(videoId);
   }
 
   goBack(): void {

@@ -203,6 +203,7 @@ export class UploadVideoComponent {
     }
 
     this.isUploading.set(true);
+    this.uploadProgress.set(0);
     
     try {
       const formData = new FormData();
@@ -231,7 +232,40 @@ export class UploadVideoComponent {
         formData.append('videoDurationSeconds', this.videoDurationSeconds.toString());
       }
       
-      await firstValueFrom(this.videoService.uploadVideo(formData));
+      // Use uploadVideoWithProgress to track upload progress
+      const uploadObservable = this.videoService.uploadVideoWithProgress(formData);
+      
+      await new Promise<void>((resolve, reject) => {
+        uploadObservable.subscribe({
+          next: (event) => {
+            this.uploadProgress.set(event.progress);
+            if (event.response) {
+              resolve();
+            }
+          },
+          error: (error) => {
+            console.error('Upload error:', error);
+            let errorMsg = 'Error uploading video';
+            
+            if (error.status === 0) {
+              errorMsg = 'Connection failed. Check if backend is running or if file is too large.';
+            } else if (error.status === 413) {
+              errorMsg = 'File is too large. Maximum size exceeded.';
+            } else if (error.status === 500) {
+              errorMsg = 'Server error. Please try again later.';
+            } else if (error.error?.message) {
+              errorMsg = error.error.message;
+            } else if (error.message) {
+              errorMsg = error.message;
+            }
+            
+            reject(new Error(errorMsg));
+          },
+          complete: () => {
+            // Upload completed successfully
+          }
+        });
+      });
       
       this.successMessage.set('Video uploaded successfully!');
       
@@ -242,6 +276,7 @@ export class UploadVideoComponent {
       
     } catch (error: any) {
       this.errorMessage.set(error.message || 'Error uploading video');
+      this.uploadProgress.set(0);
     } finally {
       this.isUploading.set(false);
     }

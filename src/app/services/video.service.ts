@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { VideoPostResponse, VideoComment, VideoCommentRequest, StreamInfoResponse, PopularVideosResponse } from '../models/video.model';
 
 @Injectable({
@@ -47,7 +48,36 @@ export class VideoService {
   }
 
   uploadVideo(formData: FormData): Observable<VideoPostResponse> {
-    return this.http.post<VideoPostResponse>(this.apiUrl, formData);
+    return this.http.post<VideoPostResponse>(this.apiUrl, formData, {
+      reportProgress: true,
+      observe: 'events',
+      // Extend timeout for large video uploads (10 minutes)
+      // Note: This requires HttpClient timeout configuration
+    }).pipe(
+      map((event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.Response) {
+          return event.body;
+        }
+        return null as any;
+      })
+    ) as Observable<VideoPostResponse>;
+  }
+
+  uploadVideoWithProgress(formData: FormData): Observable<{progress: number, response?: VideoPostResponse}> {
+    return this.http.post<VideoPostResponse>(this.apiUrl, formData, {
+      reportProgress: true,
+      observe: 'events'
+    }).pipe(
+      map((event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const progress = event.total ? Math.round((100 * event.loaded) / event.total) : 0;
+          return { progress };
+        } else if (event.type === HttpEventType.Response) {
+          return { progress: 100, response: event.body };
+        }
+        return { progress: 0 };
+      })
+    );
   }
 
   toggleLike(videoId: number): Observable<any> {
