@@ -1,12 +1,14 @@
 <div class="chat-container">
   <div class="messages" #messageContainer>
-    <div *ngFor="let message of messages" class="message">
-      <div class="message-header">
-        <span class="sender">{{ message.sender }}</span>
-        <span class="timestamp">{{ message.timestamp | date:'short' }}</span>
+    @for (message of messages(); track message.timestamp) {
+      <div class="message">
+        <div class="message-header">
+          <span class="sender">{{ message.sender }}</span>
+          <span class="timestamp">{{ message.timestamp | date:'short' }}</span>
+        </div>
+        <div class="content">{{ message.content }}</div>
       </div>
-      <div class="content">{{ message.content }}</div>
-    </div>
+    }
   </div>
   
   <div class="input-container">

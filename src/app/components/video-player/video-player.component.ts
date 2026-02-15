@@ -1,9 +1,9 @@
-import { Component, OnInit, inject, signal, PLATFORM_ID, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, PLATFORM_ID, ViewChild, ElementRef, OnDestroy, computed } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VideoService } from '../../services/video.service';
 import { AuthService } from '../../services/auth.service';
-import { VideoPostResponse, StreamInfoResponse } from '../../models/video.model';
+import { VideoPostResponse, StreamInfoResponse, convertLocalDateTimeToString } from '../../models/video.model';
 import { VideoCommentsComponent } from '../video-comments/video-comments.component';
 import { ChatComponent } from '../chat/chat.component';
 
@@ -34,6 +34,14 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   streamMessage = signal<string | null>(null);
   showVideo = signal<boolean>(true);
   streamStatus = signal<'not-started' | 'live' | 'ended' | 'regular'>('regular');
+  showLiveChat = signal<boolean>(false);
+  
+  // Computed signal za proveru da li je stream live
+  isStreamLive = computed(() => this.streamStatus() === 'live');
+  
+  toggleLiveChat(): void {
+    this.showLiveChat.update(show => !show);
+  }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -51,8 +59,15 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }
 
   loadVideo(id: number): void {
+    console.log('VideoPlayer: Loading video', id);
     this.videoService.getVideoById(id).subscribe({
       next: (video) => {
+        console.log('VideoPlayer: Video loaded', video);
+        console.log('VideoPlayer: isLoading before:', this.isLoading());
+        
+        // Konvertuj createdAt iz LocalDateTime array u ISO string
+        video.createdAt = convertLocalDateTimeToString(video.createdAt);
+        
         this.video.set(video);
         this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
         
@@ -60,7 +75,13 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
           this.isScheduledStream.set(true);
           this.loadStreamInfo(id);
         } else {
-          this.isLoading.set(false);
+          // Koristi setTimeout da osigura da se signal primeni u sledećem tick-u
+          setTimeout(() => {
+            this.isLoading.set(false);
+            console.log('VideoPlayer: isLoading set to false');
+            console.log('VideoPlayer: isLoading after:', this.isLoading());
+            console.log('VideoPlayer: video()?.id:', this.video()?.id);
+          }, 0);
         }
       },
       error: (error) => {

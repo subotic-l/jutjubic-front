@@ -13,17 +13,33 @@ export class ChatService {
   public messages$ = this.messageSubject.asObservable();
 
   connect(streamId: number): void {
+    console.log('ChatService: Connecting to stream', streamId);
+    
+    // Dohvati JWT token iz localStorage
+    const token = localStorage.getItem('jwt-token');
+    
     this.client = new Client({
       brokerURL: 'ws://localhost/ws-chat',
       reconnectDelay: 5000,
+      connectHeaders: token ? {
+        'Authorization': `Bearer ${token}`
+      } : {},
       onConnect: () => {
+        console.log('ChatService: Connected successfully');
         this.subscription = this.client!.subscribe(
           `/topic/stream/${streamId}`,
           (message) => {
+            console.log('ChatService: Received raw message', message.body);
             const chatMessage: ChatMessage = JSON.parse(message.body);
             this.messageSubject.next(chatMessage);
           }
         );
+      },
+      onStompError: (frame) => {
+        console.error('ChatService: STOMP error', frame);
+      },
+      onWebSocketError: (event) => {
+        console.error('ChatService: WebSocket error', event);
       }
     });
 
@@ -31,12 +47,24 @@ export class ChatService {
   }
 
   sendMessage(message: ChatMessage): void {
-    if (this.client && this.client.connected) {
-      this.client.publish({
-        destination: `/app/chat.send/${message.streamId}`,
-        body: JSON.stringify(message)
-      });
+    console.log('ChatService: Attempting to send message', message);
+    
+    if (!this.client) {
+      console.error('ChatService: Client not initialized');
+      return;
     }
+    
+    if (!this.client.connected) {
+      console.error('ChatService: Client not connected');
+      return;
+    }
+    
+    this.client.publish({
+      destination: `/app/chat.send/${message.streamId}`,
+      body: JSON.stringify(message)
+    });
+    
+    console.log('ChatService: Message sent successfully');
   }
 
   disconnect(): void {

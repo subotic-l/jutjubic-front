@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
@@ -12,20 +12,35 @@ import { ChatMessage } from '../../models/chat-message.model';
   styleUrls: ['./chat.component.css']
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
-  @Input() streamId!: number;
+  streamId = input.required<number>();
   @ViewChild('messageContainer') private messageContainer!: ElementRef;
 
-  messages: ChatMessage[] = [];
+  messages = signal<ChatMessage[]>([]);
   newMessage: string = '';
   private shouldScroll = false;
+  private currentStreamId: number = 0;
 
   constructor(private chatService: ChatService) {}
 
   ngOnInit(): void {
-    this.chatService.connect(this.streamId);
+    // Proveri da li streamId postoji i konektuj se
+    try {
+      const id = this.streamId();
+      if (id && id > 0) {
+        this.currentStreamId = id;
+        console.log('Chat: Connecting to stream', id);
+        this.chatService.connect(id);
+      } else {
+        console.warn('Chat: Invalid streamId', id);
+      }
+    } catch (error) {
+      console.error('Chat: Error reading streamId', error);
+    }
     
+    // Subscribe na poruke
     this.chatService.messages$.subscribe(message => {
-      this.messages.push(message);
+      console.log('Chat: Received message', message);
+      this.messages.update(current => [...current, message]);
       this.shouldScroll = true;
     });
   }
@@ -42,16 +57,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   sendMessage(): void {
-    if (this.newMessage.trim()) {
-      const message: ChatMessage = {
-        sender: '',
-        content: this.newMessage,
-        streamId: this.streamId
-      };
-      
-      this.chatService.sendMessage(message);
-      this.newMessage = '';
+    if (!this.newMessage.trim()) return;
+    
+    if (!this.currentStreamId || this.currentStreamId === 0) {
+      console.error('Chat: Cannot send message, streamId not set');
+      return;
     }
+    
+    const message: ChatMessage = {
+      sender: '',
+      content: this.newMessage,
+      streamId: this.currentStreamId
+    };
+    
+    this.chatService.sendMessage(message);
+    this.newMessage = '';
   }
 
   private scrollToBottom(): void {
