@@ -1,7 +1,8 @@
-import { Component, input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, signal } from '@angular/core';
+import { Component, input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
+import { AuthService } from '../../services/auth.service';
 import { ChatMessage } from '../../models/chat-message.model';
 
 @Component({
@@ -19,6 +20,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   newMessage: string = '';
   private shouldScroll = false;
   private currentStreamId: number = 0;
+  private authService = inject(AuthService);
 
   constructor(private chatService: ChatService) {}
 
@@ -63,13 +65,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       console.error('Chat: Cannot send message, streamId not set');
       return;
     }
+
+    const currentUser = this.authService.currentUser();
+    const senderName = currentUser?.username || 'Anonymous';
     
     const message: ChatMessage = {
-      sender: '',
-      content: this.newMessage,
+      sender: senderName,
+      content: this.newMessage.trim(),
       streamId: this.currentStreamId
     };
     
+    console.log('Chat: Sending message', message);
     this.chatService.sendMessage(message);
     this.newMessage = '';
   }
