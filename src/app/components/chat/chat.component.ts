@@ -1,4 +1,4 @@
-import { Component, input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, signal, inject } from '@angular/core';
+import { Component, input, OnInit, OnDestroy, ViewChild, ElementRef, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
@@ -12,17 +12,24 @@ import { ChatMessage } from '../../models/chat-message.model';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ChatComponent implements OnInit, OnDestroy {
   streamId = input.required<number>();
   @ViewChild('messageContainer') private messageContainer!: ElementRef;
 
   messages = signal<ChatMessage[]>([]);
   newMessage: string = '';
-  private shouldScroll = false;
   private currentStreamId: number = 0;
   private authService = inject(AuthService);
 
-  constructor(private chatService: ChatService) {}
+  constructor(private chatService: ChatService) {
+    // Effect koji se poziva svaki put kad se messages signal promeni
+    effect(() => {
+      const msgs = this.messages();
+      if (msgs.length > 0) {
+        setTimeout(() => this.scrollToBottom(), 0);
+      }
+    });
+  }
 
   ngOnInit(): void {
     // Proveri da li streamId postoji i konektuj se
@@ -30,7 +37,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       const id = this.streamId();
       if (id && id > 0) {
         this.currentStreamId = id;
-        console.log('Chat: Connecting to stream', id);
         this.chatService.connect(id);
       } else {
         console.warn('Chat: Invalid streamId', id);
@@ -41,17 +47,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     
     // Subscribe na poruke
     this.chatService.messages$.subscribe(message => {
-      console.log('Chat: Received message', message);
       this.messages.update(current => [...current, message]);
-      this.shouldScroll = true;
     });
-  }
-
-  ngAfterViewChecked(): void {
-    if (this.shouldScroll) {
-      this.scrollToBottom();
-      this.shouldScroll = false;
-    }
   }
 
   ngOnDestroy(): void {
@@ -74,8 +71,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       content: this.newMessage.trim(),
       streamId: this.currentStreamId
     };
-    
-    console.log('Chat: Sending message', message);
+
     this.chatService.sendMessage(message);
     this.newMessage = '';
   }
