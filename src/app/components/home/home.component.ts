@@ -32,11 +32,13 @@ export class HomeComponent implements OnInit {
       next: (response) => {
         console.log('Popular videos response:', response);
         console.log('Popular videos array:', response.popularVideos);
-        // Mapiranje uploaderUsername u username
-        const mappedVideos = response.popularVideos.map((video: any) => ({
-          ...video,
-          username: video.uploaderUsername
-        }));
+        // Mapiranje uploaderUsername u username i filtriranje zakazanih videa
+        const mappedVideos = response.popularVideos
+          .map((video: any) => ({
+            ...video,
+            username: video.uploaderUsername
+          }))
+          .filter((video: any) => this.isVideoAvailable(video));
         this.popularVideos.set(mappedVideos);
       },
       error: (error) => {
@@ -49,7 +51,9 @@ export class HomeComponent implements OnInit {
   loadVideos(): void {
     this.videoService.getAllVideos().subscribe({
       next: (videos) => {
-        this.videos.set(videos);
+        // Filtriraj samo videe koji su dostupni (nisu zakazani za budućnost)
+        const availableVideos = videos.filter(video => this.isVideoAvailable(video));
+        this.videos.set(availableVideos);
         this.loadMoreVideos();
         this.isLoading.set(false);
       },
@@ -58,6 +62,26 @@ export class HomeComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Proverava da li je video dostupan za prikaz u listi.
+   * Video je dostupan ako je DATUM premijere već nastupio (bez obzira na sat).
+   */
+  private isVideoAvailable(video: VideoPostResponse | any): boolean {
+    if (!video.scheduledReleaseTime) {
+      return true; // Nema zakazano vreme, video je dostupan
+    }
+    
+    const scheduledTime = new Date(video.scheduledReleaseTime);
+    const now = new Date();
+    
+    // Upoređujemo samo datume (bez sati)
+    const scheduledDate = new Date(scheduledTime.getFullYear(), scheduledTime.getMonth(), scheduledTime.getDate());
+    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Video je dostupan ako je datum premijere danas ili u prošlosti
+    return currentDate >= scheduledDate;
   }
 
   loadMoreVideos(): void {
