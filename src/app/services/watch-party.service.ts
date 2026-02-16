@@ -53,44 +53,47 @@ export class WatchPartyService {
   }
 
   // WebSocket connection
-  connectToRoom(roomCode: string): void {
+  connectToRoom(roomCode: string, onConnected?: () => void): void {
     if (!isPlatformBrowser(this.platformId)) {
-      return;
+        return;
     }
 
     this.disconnectFromRoom();
 
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS(this.wsUrl),
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      debug: (str) => {
+        webSocketFactory: () => new SockJS(this.wsUrl),
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+        debug: (str) => {
         console.log('[STOMP]', str);
-      }
+        }
     });
 
     this.stompClient.onConnect = () => {
-      console.log('[WatchParty] Connected to WebSocket');
-      this.connected.set(true);
-      this.currentRoom.set(roomCode);
+        console.log('[WatchParty] Connected to WebSocket');
+        this.connected.set(true);
+        this.currentRoom.set(roomCode);
 
-      // Subscribe to room topic
-      this.stompClient?.subscribe(`/topic/watchparty/${roomCode}`, (message: IMessage) => {
+        this.stompClient?.subscribe(`/topic/watchparty/${roomCode}`, (message: IMessage) => {
         const parsedMessage: WatchPartyMessage = JSON.parse(message.body);
         console.log('[WatchParty] Received message:', parsedMessage);
         this.messageSubject.next(parsedMessage);
-      });
+        });
+
+        if (onConnected) {
+        onConnected();
+        }
     };
 
     this.stompClient.onDisconnect = () => {
-      console.log('[WatchParty] Disconnected from WebSocket');
-      this.connected.set(false);
-      this.currentRoom.set(null);
+        console.log('[WatchParty] Disconnected from WebSocket');
+        this.connected.set(false);
+        this.currentRoom.set(null);
     };
 
     this.stompClient.onStompError = (frame) => {
-      console.error('[WatchParty] STOMP error:', frame);
+        console.error('[WatchParty] STOMP error:', frame);
     };
 
     this.stompClient.activate();

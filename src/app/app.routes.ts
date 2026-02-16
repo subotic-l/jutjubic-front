@@ -7,15 +7,16 @@ import { UploadVideoComponent } from './components/upload-video/upload-video.com
 import { MapComponent } from './components/map/map.component';
 import { WatchPartyComponent } from './components/watch-party/watch-party.component';
 import { CreateWatchPartyComponent } from './components/create-watch-party/create-watch-party.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'upload', component: UploadVideoComponent },
+  { path: 'upload', component: UploadVideoComponent, canActivate: [authGuard] },
   { path: 'map', component: MapComponent },
   { path: 'video/:id', component: VideoPlayerComponent },
-  { path: 'watch-party/create', component: CreateWatchPartyComponent },
-  { path: 'watch-party/:roomCode', component: WatchPartyComponent },
+  { path: 'watch-party/create', component: CreateWatchPartyComponent, canActivate: [authGuard] },
+  { path: 'watch-party/:roomCode', component: WatchPartyComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];

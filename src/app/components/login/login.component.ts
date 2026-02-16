@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -15,6 +15,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   loginForm: FormGroup;
   errorMessage = signal<string>('');
@@ -40,7 +41,9 @@ export class LoginComponent {
       this.authService.login(this.loginForm.value).subscribe({
         next: () => {
           this.isLoading.set(false);
-          this.router.navigate(['/']);
+          
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+          this.router.navigateByUrl(returnUrl);
         },
         error: (error) => {
           this.isLoading.set(false);
@@ -48,10 +51,9 @@ export class LoginComponent {
           
           let message = 'Login failed. Please check your credentials.';
           
-          // Backend vraća greške u formatu: { error: "poruka" }
           if (error.error?.error) {
             message = error.error.error;
-            // Ako postoji remainingAttempts, dodaj to u poruku
+            
             if (error.error.remainingAttempts !== undefined) {
               message += ` (${error.error.remainingAttempts} attempts remaining)`;
             }

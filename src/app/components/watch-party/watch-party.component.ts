@@ -35,19 +35,44 @@ export class WatchPartyComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const roomCode = this.route.snapshot.paramMap.get('roomCode');
     if (roomCode) {
-      this.loadWatchParty(roomCode);
-      this.loadVideos();
-      this.connectToWebSocket(roomCode);
-      this.subscribeToMessages();
+      this.joinRoom(roomCode);
     }
   }
 
   ngOnDestroy(): void {
+    const roomCode = this.watchParty()?.roomCode;
+    if (roomCode && !this.isOwner()) {
+      this.watchPartyService.leaveWatchParty(roomCode).subscribe();
+    }
     this.watchPartyService.disconnectFromRoom();
     this.messageSubscription?.unsubscribe();
   }
 
-  loadWatchParty(roomCode: string): void {
+  joinRoom(roomCode: string): void {
+    this.subscribeToMessages();
+    
+    this.watchPartyService.connectToRoom(roomCode, () => {
+      setTimeout(() => {
+        this.watchPartyService.joinWatchParty(roomCode).subscribe({
+          next: (party) => {
+            this.watchParty.set(party);
+            this.isLoading.set(false);
+            
+            const currentUser = this.authService.currentUser();
+            this.isOwner.set(currentUser?.username === party.ownerUsername);
+            
+            this.loadVideos();
+          },
+          error: (error) => {
+            console.error('Error joining watch party:', error);
+            this.loadWatchPartyOnly(roomCode);
+          }
+        });
+      }, 100);
+    });
+  }
+
+  loadWatchPartyOnly(roomCode: string): void {
     this.watchPartyService.getWatchParty(roomCode).subscribe({
       next: (party) => {
         this.watchParty.set(party);
@@ -55,6 +80,8 @@ export class WatchPartyComponent implements OnInit, OnDestroy {
         
         const currentUser = this.authService.currentUser();
         this.isOwner.set(currentUser?.username === party.ownerUsername);
+        
+        this.loadVideos();
       },
       error: (error) => {
         console.error('Error loading watch party:', error);
@@ -75,31 +102,29 @@ export class WatchPartyComponent implements OnInit, OnDestroy {
     });
   }
 
-  connectToWebSocket(roomCode: string): void {
-    this.watchPartyService.connectToRoom(roomCode);
-  }
-
   subscribeToMessages(): void {
     this.messageSubscription = this.watchPartyService.messages$.subscribe((message) => {
+      console.log('[WatchParty] Message received:', message);
       this.messages.update(msgs => [...msgs, message]);
 
-      // Ako je VIDEO_STARTED i korisnik nije vlasnik, preusmeri na video
       if (message.type === 'VIDEO_STARTED' && !this.isOwner() && message.videoId) {
         console.log('[WatchParty] Redirecting to video:', message.videoId);
         this.router.navigate(['/video', message.videoId]);
       }
 
-      // Ako je PARTY_CLOSED, vrati na početnu
       if (message.type === 'PARTY_CLOSED') {
         alert('Watch party has been closed by the owner');
         this.router.navigate(['/']);
       }
 
-      // Refresh watch party data za USER_JOINED/USER_LEFT
       if (message.type === 'USER_JOINED' || message.type === 'USER_LEFT') {
         const roomCode = this.watchParty()?.roomCode;
         if (roomCode) {
-          this.loadWatchParty(roomCode);
+          this.watchPartyService.getWatchParty(roomCode).subscribe({
+            next: (party) => {
+              this.watchParty.set(party);
+            }
+          });
         }
       }
     });
@@ -112,7 +137,6 @@ export class WatchPartyComponent implements OnInit, OnDestroy {
     this.watchPartyService.startVideo(roomCode, videoId).subscribe({
       next: () => {
         console.log('[WatchParty] Video started successfully');
-        // Vlasnik takođe ide na video stranicu
         this.router.navigate(['/video', videoId]);
       },
       error: (error) => {
