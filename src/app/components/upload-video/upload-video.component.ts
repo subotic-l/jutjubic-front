@@ -120,8 +120,8 @@ export class UploadVideoComponent {
       date.getDate(),
       date.getHours(),
       date.getMinutes(),
-      0, // seconds
-      0  // nanoseconds
+      // 0, // seconds
+      // 0  // nanoseconds
     ];
   }
 
@@ -242,8 +242,7 @@ export class UploadVideoComponent {
       
       // Add scheduled release fields if scheduled
       if (this.isScheduled && this.scheduledReleaseTime) {
-        const dateTimeArray = this.convertToLocalDateTimeArray(this.scheduledReleaseTime);
-        formData.append('scheduledReleaseTime', JSON.stringify(dateTimeArray));
+        formData.append('scheduledReleaseTime', this.scheduledReleaseTime);
       }
       
       if (this.videoDurationSeconds !== null) {
