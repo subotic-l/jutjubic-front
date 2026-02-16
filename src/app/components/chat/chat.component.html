@@ -1,10 +1,12 @@
 <div class="chat-container">
   <div class="messages" #messageContainer>
-    @for (message of messages(); track message.timestamp) {
+    @for (message of messages(); track $index) {
       <div class="message">
         <div class="message-header">
           <span class="sender">{{ message.sender }}</span>
-          <span class="timestamp">{{ message.timestamp | date:'short' }}</span>
+          @if (message.timestamp) {
+            <span class="timestamp">{{ message.timestamp | date:'short' }}</span>
+          }
         </div>
         <div class="content">{{ message.content }}</div>
       </div>

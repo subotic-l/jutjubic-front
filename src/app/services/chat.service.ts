@@ -3,6 +3,7 @@ import SockJS from 'sockjs-client';
 import * as Stomp from 'stompjs';
 import { Subject } from 'rxjs';
 import { ChatMessage } from '../models/chat-message.model';
+import { convertLocalDateTimeToString } from '../models/video.model';
 
 @Injectable({
   providedIn: 'root'
@@ -49,6 +50,12 @@ export class ChatService {
       this.stompClient.subscribe(`/topic/stream/${streamId}`, (message: any) => {
         console.log('ChatService: 📨 Received message', message.body);
         const chatMessage: ChatMessage = JSON.parse(message.body);
+        
+        // Konvertuj timestamp iz LocalDateTime array formata u ISO string
+        if (chatMessage.timestamp) {
+          chatMessage.timestamp = convertLocalDateTimeToString(chatMessage.timestamp);
+        }
+        
         this.messageSubject.next(chatMessage);
       });
       

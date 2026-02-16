@@ -50,7 +50,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Subscribe na poruke
     this.messageSubscription = this.chatService.messages$.subscribe(message => {
       console.log('ChatComponent: Message received', message);
-      this.messages.update(current => [...current, message]);
+      // Koristi setTimeout da izbegne ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.messages.update(current => [...current, message]);
+      }, 0);
     });
   }
 
