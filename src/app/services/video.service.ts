@@ -36,14 +36,24 @@ export class VideoService {
     return `${this.apiUrl}/thumbnails/${fileName}`;
   }
 
-  getVideoUrl(videoUrl: string): string {
-    // Ako videoUrl već sadrži punu putanju, vrati ga direktno
-    if (videoUrl.startsWith('http')) {
-      return videoUrl;
+  getVideoUrl(video: VideoPostResponse | string): string {
+    // Ako je prosleđen ceo video objekat
+    if (typeof video === 'object') {
+      // Koristi transcoded video ako postoji, inače original
+      const videoPath = video.transcodedVideoUrl || video.videoUrl;
+      
+      if (videoPath.startsWith('http')) {
+        return videoPath;
+      }
+      const fileName = videoPath.split(/[\\/]/).pop() || videoPath;
+      return `${this.apiUrl}/videos/${fileName}`;
     }
-    // Izvuci samo ime fajla iz putanje
-    const fileName = videoUrl.split(/[\\/]/).pop() || videoUrl;
-    // Backend mora da ima endpoint za serviranje video fajlova
+    
+    // Ako je prosleđen samo string (backward compatibility)
+    if (video.startsWith('http')) {
+      return video;
+    }
+    const fileName = video.split(/[\\/]/).pop() || video;
     return `${this.apiUrl}/videos/${fileName}`;
   }
 

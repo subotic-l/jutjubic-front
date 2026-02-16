@@ -77,7 +77,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     this.videoService.getVideoById(id).subscribe({
       next: (video) => {
         this.video.set(video);
-        this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
+        this.videoUrl.set(this.videoService.getVideoUrl(video));
         
         if (video.scheduledReleaseTime) {
           this.isScheduledStream.set(true);
@@ -159,7 +159,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
             this.videoService.getVideoById(videoId).subscribe({
               next: (video) => {
                 this.video.set(video);
-                this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
+                this.videoUrl.set(this.videoService.getVideoUrl(video));
                 this.viewCounted.set(true);
                 this.synchronizeVideo(streamInfo);
                 this.startPeriodicSync(videoId);
@@ -275,7 +275,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
               this.videoService.getVideoById(videoId).subscribe({
                 next: (video) => {
                   this.video.set(video);
-                  this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
+                  this.videoUrl.set(this.videoService.getVideoUrl(video));
                   this.viewCounted.set(true);
                 },
                 error: (error) => {

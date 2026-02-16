@@ -4,6 +4,7 @@ export interface VideoPostResponse {
   description: string;
   tags: string[];
   videoUrl: string;
+  transcodedVideoUrl?: string;
   thumbnailPath: string;
   createdAt: string;
   views?: number;
