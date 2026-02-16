@@ -4,7 +4,7 @@ import { MapService } from '../../services/map.service';
 import { VideoService } from '../../services/video.service';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { VideoPostResponse } from '../../models/video.model';
+import { VideoPostResponse, convertLocalDateTimeToString } from '../../models/video.model';
 
 @Component({
   selector: 'app-map',
@@ -88,9 +88,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     const bounds = this.leafletMap.getBounds();
     const tiles = this.calculateTiles(bounds);
     
-    this.allVideos = await firstValueFrom(
+    const videos = await firstValueFrom(
       this.videoService.getMapVideos(tiles)
     );
+    
+    // Konvertuj scheduledReleaseTime iz array formata u string
+    this.allVideos = videos.map(video => ({
+      ...video,
+      scheduledReleaseTime: video.scheduledReleaseTime ? convertLocalDateTimeToString(video.scheduledReleaseTime) : undefined
+    }));
   }
 
   private calculateTiles(bounds: any): Array<{x: number, y: number, zoom: number}> {
