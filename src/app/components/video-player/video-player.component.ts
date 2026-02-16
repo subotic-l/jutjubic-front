@@ -89,8 +89,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
         console.log('VideoPlayer: Video loaded', video);
         console.log('VideoPlayer: isLoading before:', this.isLoading());
         
-        // Konvertuj createdAt iz LocalDateTime array u ISO string
+        // Konvertuj createdAt i scheduledReleaseTime iz LocalDateTime array u ISO string
         video.createdAt = convertLocalDateTimeToString(video.createdAt);
+        if (video.scheduledReleaseTime) {
+          video.scheduledReleaseTime = convertLocalDateTimeToString(video.scheduledReleaseTime);
+        }
         
         this.video.set(video);
         this.videoUrl.set(this.videoService.getVideoUrl(video.videoUrl));
@@ -139,6 +142,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   loadStreamInfo(videoId: number): void {
     this.videoService.getStreamInfo(videoId).subscribe({
       next: (streamInfo) => {
+        // Konvertuj scheduledReleaseTime ako je array
+        if (streamInfo.scheduledReleaseTime) {
+          streamInfo.scheduledReleaseTime = convertLocalDateTimeToString(streamInfo.scheduledReleaseTime);
+        }
+        
         this.streamInfo.set(streamInfo);
         this.isLoading.set(false);
         
@@ -277,6 +285,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     this.syncInterval = setInterval(() => {
       this.videoService.getStreamInfo(videoId).subscribe({
         next: (streamInfo) => {
+          // Konvertuj scheduledReleaseTime ako je array
+          if (streamInfo.scheduledReleaseTime) {
+            streamInfo.scheduledReleaseTime = convertLocalDateTimeToString(streamInfo.scheduledReleaseTime);
+          }
+          
           this.streamInfo.set(streamInfo);
           
           if (streamInfo.hasEnded) {
