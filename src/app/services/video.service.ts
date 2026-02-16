@@ -26,13 +26,24 @@ export class VideoService {
     return this.http.get<VideoPostResponse>(`${this.apiUrl}/${id}`);
   }
 
-  getThumbnailUrl(thumbnailPath: string): string {
-    // Ako thumbnailPath već sadrži punu putanju, vrati ga direktno
-    if (thumbnailPath.startsWith('http')) {
-      return thumbnailPath;
+  getThumbnailUrl(video: VideoPostResponse | string): string {
+    // Ako je prosleđen ceo video objekat
+    if (typeof video === 'object') {
+      // Koristi kompresovan thumbnail ako postoji, inače original
+      const thumbnailPath = video.compressedThumbnailPath || video.thumbnailPath;
+      
+      if (thumbnailPath.startsWith('http')) {
+        return thumbnailPath;
+      }
+      const fileName = thumbnailPath.split(/[\\/]/).pop() || thumbnailPath;
+      return `${this.apiUrl}/thumbnails/${fileName}`;
     }
-    // Izvuci samo ime fajla iz putanje (npr. 'uploads\\thumbnails\\xyz.jpg' -> 'xyz.jpg')
-    const fileName = thumbnailPath.split(/[\\/]/).pop() || thumbnailPath;
+    
+    // Ako je prosleđen samo string (backward compatibility)
+    if (video.startsWith('http')) {
+      return video;
+    }
+    const fileName = video.split(/[\\/]/).pop() || video;
     return `${this.apiUrl}/thumbnails/${fileName}`;
   }
 
