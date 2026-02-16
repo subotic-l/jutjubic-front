@@ -4,7 +4,7 @@
       <div class="spinner-large"></div>
     </div>
   } @else if (video()) {
-    <div class="video-player">
+    <div class="video-player-layout" [class.chat-open]="showLiveChat()">
       
       <!-- Video Player (Regular or Live/Ended Stream) -->
       @if (showVideo()) {
@@ -86,29 +86,37 @@
             </span>
           }
           @if (video()?.tags && (video()?.tags?.length ?? 0) > 0) {
-            <div class="tags-container">
-              <span class="material-icons tags-icon">tag</span>
-              <div class="tags-list">
-                @for (tag of video()?.tags; track tag) {
-                  <span class="tag">{{ tag }}</span>
-                }
-              </div>
+            <div class="tags">
+              @for (tag of video()?.tags; track tag) {
+                <span class="tag">{{ tag }}</span>
+              }
             </div>
           }
         </div>
         
-        @if (video()?.description) {
-          <div class="video-description">
-            <h3>Description</h3>
-            <p>{{ video()?.description }}</p>
+        <!-- Comments Section -->
+        @if (video()?.id) {
+          <div class="comments-wrapper">
+            <app-video-comments [videoId]="video()!.id" />
           </div>
         }
       </div>
       
-      <!-- Comments Section -->
-      @if (video()?.id) {
-        <app-video-comments [videoId]="video()!.id"></app-video-comments>
+      <!-- Live Chat Sidebar - samo kada je stream LIVE i chat je otvoren -->
+      @if (isStreamLive() && showLiveChat() && video()?.id) {
+        <aside class="live-chat-sidebar">
+          <div class="chat-header">
+            <h3>Live Chat</h3>
+            <button (click)="toggleLiveChat()" class="close-btn">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="chat-content">
+            <app-chat [streamId]="video()!.id" />
+          </div>
+        </aside>
       }
+      
     </div>
   } @else if (errorMessage()) {
     <!-- Error State -->
