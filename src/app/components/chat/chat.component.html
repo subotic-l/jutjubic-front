@@ -1,0 +1,32 @@
+<div class="chat-container">
+  <div class="messages" #messageContainer>
+    @for (message of messages(); track $index) {
+      <div class="message">
+        <div class="message-header">
+          <span class="sender">{{ message.sender }}</span>
+          @if (message.timestamp) {
+            <span class="timestamp">{{ message.timestamp | date:'short' }}</span>
+          }
+        </div>
+        <div class="content">{{ message.content }}</div>
+      </div>
+    }
+  </div>
+  
+  <div class="input-container">
+    <input 
+      type="text" 
+      [(ngModel)]="newMessage" 
+      (keyup.enter)="sendMessage()"
+      placeholder="Type a message..."
+      class="message-input"
+    />
+    <button 
+      (click)="sendMessage()" 
+      [disabled]="!newMessage.trim()"
+      class="send-button"
+    >
+      Send
+    </button>
+  </div>
+</div>

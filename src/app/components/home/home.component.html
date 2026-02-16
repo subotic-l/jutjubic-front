@@ -10,21 +10,57 @@
       <p>Be the first to upload a video!</p>
     </div>
   } @else {
-    <div class="videos-grid">
-      @for (video of displayedVideos(); track video.id) {
-        <div class="video-card" (click)="onVideoClick(video.id)">
-          <div class="video-thumbnail">
-            <img [src]="getThumbnailUrl(video.thumbnailPath)" [alt]="video.title">
-            <div class="play-overlay">
-              <span class="material-icons">play_circle</span>
+    <!-- Trending Section -->
+    @if (popularVideos().length > 0) {
+      <div class="trending-section">
+        <div class="trending-header">
+          <span class="material-icons trending-icon">trending_up</span>
+          <h2>Trending Now</h2>
+        </div>
+        <div class="trending-grid">
+          @for (video of popularVideos(); track video.id) {
+            <div class="trending-card" (click)="onVideoClick(video.id)">
+              <div class="trending-badge">
+                <span class="material-icons">star</span>
+                <span class="trending-rank">#{{ $index + 1 }}</span>
+              </div>
+              <div class="video-thumbnail">
+                <img [src]="getPopularThumbnailUrl(video)" [alt]="video.title">
+                <div class="play-overlay">
+                  <span class="material-icons">play_circle</span>
+                </div>
+              </div>
+              <div class="video-info">
+                <h3 class="video-title">{{ video.title }}</h3>
+                <p class="video-author">{{ video.username || 'Unknown' }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      
+      <div class="section-divider"></div>
+    }
+
+    <!-- Regular Videos Grid -->
+    <div class="all-videos-section">
+      <h2 class="section-title">Latest Videos</h2>
+      <div class="videos-grid">
+        @for (video of displayedVideos(); track video.id) {
+          <div class="video-card" (click)="onVideoClick(video.id)">
+            <div class="video-thumbnail">
+              <img [src]="getThumbnailUrl(video)" [alt]="video.title">
+              <div class="play-overlay">
+                <span class="material-icons">play_circle</span>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">{{ video.title }}</h3>
+              <p class="video-author">{{ video.username || 'Unknown' }}</p>
             </div>
           </div>
-          <div class="video-info">
-            <h3 class="video-title">{{ video.title }}</h3>
-            <p class="video-author">{{ video.username || 'Unknown' }}</p>
-          </div>
-        </div>
-      }
+        }
+      </div>
     </div>
     
     @if (hasMoreVideos()) {

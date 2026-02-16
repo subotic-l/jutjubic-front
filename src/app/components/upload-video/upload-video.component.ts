@@ -23,6 +23,11 @@ export class UploadVideoComponent {
   longitude: number | null = null;
   includeLocation = false;
   
+  // Scheduled release fields
+  scheduledReleaseTime: string | null = null;
+  videoDurationSeconds: number | null = null;
+  isScheduled = false;
+  
   thumbnailPreview = signal<string | null>(null);
   videoFileName = signal<string | null>(null);
   
@@ -85,7 +90,39 @@ export class UploadVideoComponent {
       this.video = file;
       this.videoFileName.set(file.name);
       this.errorMessage.set(null);
+      
+      // Get video duration
+      this.getVideoDuration(file);
     }
+  }
+
+  getVideoDuration(file: File): void {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      this.videoDurationSeconds = Math.floor(video.duration);
+    };
+    
+    video.src = URL.createObjectURL(file);
+  }
+
+  /**
+   * Konvertuje datetime-local string u LocalDateTime array format koji backend očekuje
+   * Format: [year, month, day, hour, minute, second, nanosecond]
+   */
+  convertToLocalDateTimeArray(dateTimeString: string): number[] {
+    const date = new Date(dateTimeString);
+    return [
+      date.getFullYear(),
+      date.getMonth() + 1, // JavaScript months are 0-indexed
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+      // 0, // seconds
+      // 0  // nanoseconds
+    ];
   }
 
   addTag(): void {
@@ -183,6 +220,7 @@ export class UploadVideoComponent {
     }
 
     this.isUploading.set(true);
+    this.uploadProgress.set(0);
     
     try {
       const formData = new FormData();
@@ -202,7 +240,49 @@ export class UploadVideoComponent {
         formData.append('longitude', this.longitude.toString());
       }
       
-      await firstValueFrom(this.videoService.uploadVideo(formData));
+      // Add scheduled release fields if scheduled
+      if (this.isScheduled && this.scheduledReleaseTime) {
+        formData.append('scheduledReleaseTime', this.scheduledReleaseTime);
+      }
+      
+      if (this.videoDurationSeconds !== null) {
+        formData.append('videoDurationSeconds', this.videoDurationSeconds.toString());
+      }
+      
+      // Use uploadVideoWithProgress to track upload progress
+      const uploadObservable = this.videoService.uploadVideoWithProgress(formData);
+      
+      await new Promise<void>((resolve, reject) => {
+        uploadObservable.subscribe({
+          next: (event) => {
+            this.uploadProgress.set(event.progress);
+            if (event.response) {
+              resolve();
+            }
+          },
+          error: (error) => {
+            console.error('Upload error:', error);
+            let errorMsg = 'Error uploading video';
+            
+            if (error.status === 0) {
+              errorMsg = 'Connection failed. Check if backend is running or if file is too large.';
+            } else if (error.status === 413) {
+              errorMsg = 'File is too large. Maximum size exceeded.';
+            } else if (error.status === 500) {
+              errorMsg = 'Server error. Please try again later.';
+            } else if (error.error?.message) {
+              errorMsg = error.error.message;
+            } else if (error.message) {
+              errorMsg = error.message;
+            }
+            
+            reject(new Error(errorMsg));
+          },
+          complete: () => {
+            // Upload completed successfully
+          }
+        });
+      });
       
       this.successMessage.set('Video uploaded successfully!');
       
@@ -213,6 +293,7 @@ export class UploadVideoComponent {
       
     } catch (error: any) {
       this.errorMessage.set(error.message || 'Error uploading video');
+      this.uploadProgress.set(0);
     } finally {
       this.isUploading.set(false);
     }

@@ -14,7 +14,7 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
   private isBrowser: boolean;
 
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = 'http://localhost/api/auth';
   
   public currentUser = signal<User | null>(null);
   public isLoggedIn = signal<boolean>(false);

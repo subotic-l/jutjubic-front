@@ -1,0 +1,115 @@
+<div class="watch-party-container">
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner-large"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-container">
+      <span class="material-icons">error</span>
+      <p>{{ errorMessage() }}</p>
+      <button (click)="router.navigate(['/'])" class="btn btn-primary">Go Home</button>
+    </div>
+  } @else if (watchParty()) {
+    <div class="party-header">
+      <div class="party-info">
+        <h1 class="party-name">
+          <span class="material-icons">groups</span>
+          {{ watchParty()?.name }}
+        </h1>
+        <p class="party-code">Room Code: <strong>{{ watchParty()?.roomCode }}</strong></p>
+        <p class="party-owner">Host: {{ watchParty()?.ownerUsername }}</p>
+      </div>
+
+      <div class="party-actions">
+        <button (click)="copyInviteLink()" class="btn btn-secondary">
+          <span class="material-icons">link</span>
+          Copy Invite Link
+        </button>
+        @if (isOwner()) {
+          <button (click)="closeParty()" class="btn btn-danger">
+            <span class="material-icons">close</span>
+            Close Party
+          </button>
+        } @else {
+          <button (click)="leaveParty()" class="btn btn-secondary">
+            <span class="material-icons">exit_to_app</span>
+            Leave Party
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="party-content">
+      <!-- Participants Section -->
+      <div class="participants-section">
+        <h3>
+          <span class="material-icons">people</span>
+          Participants ({{ watchParty()?.participantUsernames?.length || 0 }})
+        </h3>
+        <div class="participants-list">
+          @for (participant of watchParty()?.participantUsernames; track participant) {
+            <div class="participant">
+              <span class="material-icons">account_circle</span>
+              <span>{{ participant }}</span>
+              @if (participant === watchParty()?.ownerUsername) {
+                <span class="owner-badge">Host</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Messages/Activity -->
+        <div class="activity-section">
+          <h4>Activity</h4>
+          <div class="activity-list">
+            @for (msg of messages(); track msg) {
+              <div class="activity-item" [class]="'activity-' + msg.type.toLowerCase()">
+                <span class="material-icons">
+                  @if (msg.type === 'USER_JOINED') { person_add }
+                  @else if (msg.type === 'USER_LEFT') { person_remove }
+                  @else if (msg.type === 'VIDEO_STARTED') { play_circle }
+                  @else { info }
+                </span>
+                <span>{{ msg.message }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Videos Section (only for owner) -->
+      @if (isOwner()) {
+        <div class="videos-section">
+          <h3>
+            <span class="material-icons">video_library</span>
+            Select a Video to Watch
+          </h3>
+          <div class="videos-grid">
+            @for (video of videos(); track video.id) {
+              <div class="video-card" (click)="startVideo(video.id)">
+                <div class="video-thumbnail">
+                  <img [src]="getThumbnailUrl(video)" [alt]="video.title">
+                  <div class="play-overlay">
+                    <span class="material-icons">play_circle</span>
+                  </div>
+                </div>
+                <div class="video-info">
+                  <h4 class="video-title">{{ video.title }}</h4>
+                  <p class="video-author">{{ video.username }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="waiting-section">
+          <div class="waiting-content">
+            <span class="material-icons waiting-icon">hourglass_empty</span>
+            <h3>Waiting for host to start a video...</h3>
+            <p>When the host plays a video, you'll be automatically redirected.</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

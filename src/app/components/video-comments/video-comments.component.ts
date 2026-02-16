@@ -1,9 +1,9 @@
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VideoService } from '../../services/video.service';
 import { AuthService } from '../../services/auth.service';
-import { VideoComment } from '../../models/video.model';
+import { VideoComment, convertLocalDateTimeToString } from '../../models/video.model';
 
 @Component({
   selector: 'app-video-comments',
@@ -13,7 +13,7 @@ import { VideoComment } from '../../models/video.model';
   styleUrls: ['./video-comments.component.css']
 })
 export class VideoCommentsComponent implements OnInit {
-  @Input() videoId!: number;
+  videoId = input.required<number>();
 
   private videoService = inject(VideoService);
   public authService = inject(AuthService);
@@ -28,17 +28,31 @@ export class VideoCommentsComponent implements OnInit {
   commentsPerPage = 10;
   hasMoreComments = signal(true);
 
+  constructor() {}
+
   ngOnInit(): void {
-    this.loadComments();
+    // Proveri da li videoId postoji i učitaj komentare
+    const id = this.videoId();
+    if (id) {
+      console.log('VideoComments: Loading comments for video', id);
+      this.loadComments();
+    }
   }
 
   loadComments(page: number = 0) {
-    if (!this.videoId) return;
+    const videoId = this.videoId();
+    if (!videoId) return;
     
     this.isLoading.set(true);
-    this.videoService.getVideoComments(this.videoId, page, this.commentsPerPage)
+    this.videoService.getVideoComments(videoId, page, this.commentsPerPage)
       .subscribe({
         next: (comments) => {
+          // Konvertuj createdAt za svaki komentar
+          comments = comments.map(comment => ({
+            ...comment,
+            createdAt: convertLocalDateTimeToString(comment.createdAt)
+          }));
+          
           if (page === 0) {
             this.comments.set(comments);
           } else {
@@ -65,7 +79,7 @@ export class VideoCommentsComponent implements OnInit {
     const text = this.newCommentText.trim();
     if (!text) return;
 
-    this.videoService.addVideoComment(this.videoId, text)
+    this.videoService.addVideoComment(this.videoId(), text)
       .subscribe({
         next: (comment) => {
           // Dodaj novi komentar na početak liste
