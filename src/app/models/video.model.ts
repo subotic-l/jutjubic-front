@@ -12,6 +12,18 @@ export interface VideoPostResponse {
   latitude?: number;
   username?: string;
   likedByCurrentUser?: boolean;
+  scheduledReleaseTime?: string;
+  videoDurationSeconds?: number;
+}
+
+export interface StreamInfoResponse {
+  isScheduled: boolean;
+  hasStarted: boolean;
+  hasEnded: boolean;
+  scheduledReleaseTime?: string;
+  videoDurationSeconds?: number;
+  currentOffsetSeconds?: number;
+  serverTime: string;
 }
 
 export interface VideoComment {
@@ -25,4 +37,20 @@ export interface VideoComment {
 export interface VideoCommentRequest {
   text: string;
   videoId: number;
+}
+
+export interface PopularVideoDto {
+  id: number;
+  title: string;
+  description: string;
+  thumbnailPath: string;
+  popularityScore: number;
+  totalViews: number;
+  likes: number;
+  username: string;
+}
+
+export interface PopularVideosResponse {
+  reportDate: string;
+  popularVideos: PopularVideoDto[];
 }

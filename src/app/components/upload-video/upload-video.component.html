@@ -183,6 +183,42 @@
         </div>
       </div>
 
+      <!-- Scheduled Release -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="material-icons">schedule</span>
+          Scheduled Release
+          <span class="optional">(optional)</span>
+        </label>
+        <div class="scheduled-controls">
+          <label class="checkbox-container">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="isScheduled" 
+              name="isScheduled"
+            />
+            <span class="checkbox-label">Schedule this video for later release</span>
+          </label>
+          
+          @if (isScheduled) {
+            <div class="datetime-input">
+              <label for="scheduledReleaseTime" class="form-label-small">
+                Release Date & Time
+              </label>
+              <input 
+                type="datetime-local" 
+                id="scheduledReleaseTime" 
+                name="scheduledReleaseTime"
+                [(ngModel)]="scheduledReleaseTime"
+                class="form-input"
+                required
+              />
+              <p class="form-hint">Video will be available for streaming at the scheduled time. All viewers will watch synchronized.</p>
+            </div>
+          }
+        </div>
+      </div>
+
       <!-- Messages -->
       @if (errorMessage()) {
         <div class="alert alert-error">

@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { VideoPostResponse, VideoComment, VideoCommentRequest } from '../models/video.model';
+import { map } from 'rxjs/operators';
+import { VideoPostResponse, VideoComment, VideoCommentRequest, StreamInfoResponse, PopularVideosResponse } from '../models/video.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ export class VideoService {
   private apiUrl = 'http://localhost:8080/api/videos';
   private mapUrl = 'http://localhost:8080/api/map';
   private commentsUrl = 'http://localhost:8080/api/comments';
+  private popularVideosUrl = 'http://localhost:8080/api/popular-videos';
 
   getAllVideos(): Observable<VideoPostResponse[]> {
     return this.http.get<VideoPostResponse[]>(this.apiUrl);
@@ -46,7 +48,36 @@ export class VideoService {
   }
 
   uploadVideo(formData: FormData): Observable<VideoPostResponse> {
-    return this.http.post<VideoPostResponse>(this.apiUrl, formData);
+    return this.http.post<VideoPostResponse>(this.apiUrl, formData, {
+      reportProgress: true,
+      observe: 'events',
+      // Extend timeout for large video uploads (10 minutes)
+      // Note: This requires HttpClient timeout configuration
+    }).pipe(
+      map((event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.Response) {
+          return event.body;
+        }
+        return null as any;
+      })
+    ) as Observable<VideoPostResponse>;
+  }
+
+  uploadVideoWithProgress(formData: FormData): Observable<{progress: number, response?: VideoPostResponse}> {
+    return this.http.post<VideoPostResponse>(this.apiUrl, formData, {
+      reportProgress: true,
+      observe: 'events'
+    }).pipe(
+      map((event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const progress = event.total ? Math.round((100 * event.loaded) / event.total) : 0;
+          return { progress };
+        } else if (event.type === HttpEventType.Response) {
+          return { progress: 100, response: event.body };
+        }
+        return { progress: 0 };
+      })
+    );
   }
 
   toggleLike(videoId: number): Observable<any> {
@@ -61,5 +92,13 @@ export class VideoService {
   addVideoComment(videoId: number, text: string): Observable<VideoComment> {
     const request: VideoCommentRequest = { text, videoId };
     return this.http.post<VideoComment>(this.commentsUrl, request);
+  }
+
+  getStreamInfo(videoId: number): Observable<StreamInfoResponse> {
+    return this.http.get<StreamInfoResponse>(`${this.apiUrl}/${videoId}/stream-info`);
+  }
+
+  getPopularVideos(): Observable<PopularVideosResponse> {
+    return this.http.get<PopularVideosResponse>(this.popularVideosUrl);
   }
 }

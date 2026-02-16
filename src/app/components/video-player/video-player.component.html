@@ -5,11 +5,40 @@
     </div>
   } @else if (video()) {
     <div class="video-player">
-      <div class="video-wrapper">
-        <video controls [src]="videoUrl()" class="video-element">
-          Your browser does not support the video tag.
-        </video>
-      </div>
+      
+      <!-- Video Player (Regular or Live/Ended Stream) -->
+      @if (showVideo()) {
+        <div class="video-wrapper">
+          @if (streamMessage() && streamStatus() !== 'regular') {
+            <div class="stream-badge" 
+                 [class.badge-ended]="streamStatus() === 'ended'" 
+                 [class.badge-live]="streamStatus() === 'live'">
+              <span class="material-icons">
+                {{ streamStatus() === 'ended' ? 'live_tv' : 'fiber_manual_record' }}
+              </span>
+              {{ streamMessage() }}
+            </div>
+          }
+          <video #videoElement controls [src]="videoUrl()" class="video-element">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      } @else if (streamStatus() === 'not-started') {
+        <!-- Scheduled Stream Not Started - Replaces Video Player -->
+        <div class="video-placeholder">
+          <div class="placeholder-content">
+            <span class="material-icons placeholder-icon">schedule</span>
+            <h3 class="placeholder-title">Live Stream Scheduled</h3>
+            <p class="placeholder-message">{{ streamMessage() }}</p>
+            <div class="placeholder-actions">
+              <button (click)="checkIfStarted()" class="btn-check-now">
+                <span class="material-icons">refresh</span>
+                Check if Started
+              </button>
+            </div>
+          </div>
+        </div>
+      }
       
       <div class="video-details">
         
@@ -80,6 +109,19 @@
       @if (video()?.id) {
         <app-video-comments [videoId]="video()!.id"></app-video-comments>
       }
+    </div>
+  } @else if (errorMessage()) {
+    <!-- Error State -->
+    <div class="error-container">
+      <div class="error-card">
+        <span class="material-icons error-icon">error_outline</span>
+        <h2 class="error-title">Oops! Something went wrong</h2>
+        <p class="error-text">{{ errorMessage() }}</p>
+        <button (click)="goBack()" class="btn-back">
+          <span class="material-icons">arrow_back</span>
+          Back to Home
+        </button>
+      </div>
     </div>
   }
 </div>

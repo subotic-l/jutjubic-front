@@ -177,6 +177,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     const now = new Date();
     const filteredVideos = this.allVideos.filter(video => {
+      // Prvo filtriraj zakazane videe koji još nisu dostupni
+      if (!this.isVideoAvailable(video)) {
+        return false;
+      }
+      
       if (!video.createdAt) return false;
       const uploadDate = new Date(video.createdAt);
       
@@ -234,6 +239,26 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+
+  /**
+   * Proverava da li je video dostupan za prikaz u listi.
+   * Video je dostupan ako je DATUM premijere već nastupio (bez obzira na sat).
+   */
+  private isVideoAvailable(video: VideoPostResponse): boolean {
+    if (!video.scheduledReleaseTime) {
+      return true; // Nema zakazano vreme, video je dostupan
+    }
+    
+    const scheduledTime = new Date(video.scheduledReleaseTime);
+    const now = new Date();
+    
+    // Upoređujemo samo datume (bez sati)
+    const scheduledDate = new Date(scheduledTime.getFullYear(), scheduledTime.getMonth(), scheduledTime.getDate());
+    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Video je dostupan ako je datum premijere danas ili u prošlosti
+    return currentDate >= scheduledDate;
   }
 
   ngOnDestroy(): void {
