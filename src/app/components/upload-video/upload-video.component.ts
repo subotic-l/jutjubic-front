@@ -108,6 +108,23 @@ export class UploadVideoComponent {
     video.src = URL.createObjectURL(file);
   }
 
+  /**
+   * Konvertuje datetime-local string u LocalDateTime array format koji backend očekuje
+   * Format: [year, month, day, hour, minute, second, nanosecond]
+   */
+  convertToLocalDateTimeArray(dateTimeString: string): number[] {
+    const date = new Date(dateTimeString);
+    return [
+      date.getFullYear(),
+      date.getMonth() + 1, // JavaScript months are 0-indexed
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+      0, // seconds
+      0  // nanoseconds
+    ];
+  }
+
   addTag(): void {
     const tag = this.tagInput.trim();
     
@@ -225,7 +242,8 @@ export class UploadVideoComponent {
       
       // Add scheduled release fields if scheduled
       if (this.isScheduled && this.scheduledReleaseTime) {
-        formData.append('scheduledReleaseTime', this.scheduledReleaseTime);
+        const dateTimeArray = this.convertToLocalDateTimeArray(this.scheduledReleaseTime);
+        formData.append('scheduledReleaseTime', JSON.stringify(dateTimeArray));
       }
       
       if (this.videoDurationSeconds !== null) {

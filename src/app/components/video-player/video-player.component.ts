@@ -1,15 +1,16 @@
-import { Component, OnInit, inject, signal, PLATFORM_ID, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, PLATFORM_ID, ViewChild, ElementRef, OnDestroy, computed } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VideoService } from '../../services/video.service';
 import { AuthService } from '../../services/auth.service';
-import { VideoPostResponse, StreamInfoResponse } from '../../models/video.model';
+import { VideoPostResponse, StreamInfoResponse, convertLocalDateTimeToString } from '../../models/video.model';
 import { VideoCommentsComponent } from '../video-comments/video-comments.component';
+import { ChatComponent } from '../chat/chat.component';
 
 @Component({
   selector: 'app-video-player',
   standalone: true,
-  imports: [CommonModule, VideoCommentsComponent],
+  imports: [CommonModule, VideoCommentsComponent, ChatComponent],
   templateUrl: './video-player.component.html',
   styleUrl: './video-player.component.css'
 })
@@ -33,6 +34,14 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   streamMessage = signal<string | null>(null);
   showVideo = signal<boolean>(true);
   streamStatus = signal<'not-started' | 'live' | 'ended' | 'regular'>('regular');
+  showLiveChat = signal<boolean>(false);
+  
+  // Computed signal za proveru da li je stream live
+  isStreamLive = computed(() => this.streamStatus() === 'live');
+  
+  toggleLiveChat(): void {
+    this.showLiveChat.update(show => !show);
+  }
   
   // Track user's pause state to prevent auto-play during sync
   userPausedVideo = signal<boolean>(false);
@@ -74,8 +83,18 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }
 
   loadVideo(id: number): void {
+    console.log('VideoPlayer: Loading video', id);
     this.videoService.getVideoById(id).subscribe({
       next: (video) => {
+        console.log('VideoPlayer: Video loaded', video);
+        console.log('VideoPlayer: isLoading before:', this.isLoading());
+        
+        // Konvertuj createdAt i scheduledReleaseTime iz LocalDateTime array u ISO string
+        video.createdAt = convertLocalDateTimeToString(video.createdAt);
+        if (video.scheduledReleaseTime) {
+          video.scheduledReleaseTime = convertLocalDateTimeToString(video.scheduledReleaseTime);
+        }
+        
         this.video.set(video);
         this.videoUrl.set(this.videoService.getVideoUrl(video));
         
@@ -83,7 +102,13 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
           this.isScheduledStream.set(true);
           this.loadStreamInfo(id);
         } else {
-          this.isLoading.set(false);
+          // Koristi setTimeout da osigura da se signal primeni u sledećem tick-u
+          setTimeout(() => {
+            this.isLoading.set(false);
+            console.log('VideoPlayer: isLoading set to false');
+            console.log('VideoPlayer: isLoading after:', this.isLoading());
+            console.log('VideoPlayer: video()?.id:', this.video()?.id);
+          }, 0);
           this.setupVideoEventListeners();
         }
         
@@ -117,6 +142,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   loadStreamInfo(videoId: number): void {
     this.videoService.getStreamInfo(videoId).subscribe({
       next: (streamInfo) => {
+        // Konvertuj scheduledReleaseTime ako je array
+        if (streamInfo.scheduledReleaseTime) {
+          streamInfo.scheduledReleaseTime = convertLocalDateTimeToString(streamInfo.scheduledReleaseTime);
+        }
+        
         this.streamInfo.set(streamInfo);
         this.isLoading.set(false);
         
@@ -255,6 +285,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     this.syncInterval = setInterval(() => {
       this.videoService.getStreamInfo(videoId).subscribe({
         next: (streamInfo) => {
+          // Konvertuj scheduledReleaseTime ako je array
+          if (streamInfo.scheduledReleaseTime) {
+            streamInfo.scheduledReleaseTime = convertLocalDateTimeToString(streamInfo.scheduledReleaseTime);
+          }
+          
           this.streamInfo.set(streamInfo);
           
           if (streamInfo.hasEnded) {

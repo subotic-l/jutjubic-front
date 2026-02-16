@@ -4,26 +4,28 @@
       <div class="spinner-large"></div>
     </div>
   } @else if (video()) {
-    <div class="video-player">
+    <div class="video-player-layout" [class.chat-open]="showLiveChat()">
       
-      <!-- Video Player (Regular or Live/Ended Stream) -->
-      @if (showVideo()) {
-        <div class="video-wrapper">
-          @if (streamMessage() && streamStatus() !== 'regular') {
-            <div class="stream-badge" 
-                 [class.badge-ended]="streamStatus() === 'ended'" 
-                 [class.badge-live]="streamStatus() === 'live'">
-              <span class="material-icons">
-                {{ streamStatus() === 'ended' ? 'live_tv' : 'fiber_manual_record' }}
-              </span>
-              {{ streamMessage() }}
-            </div>
-          }
-          <video #videoElement controls [src]="videoUrl()" class="video-element">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      } @else if (streamStatus() === 'not-started') {
+      <!-- Main Content Area -->
+      <div class="primary-content">
+        <!-- Video Player (Regular or Live/Ended Stream) -->
+        @if (showVideo()) {
+          <div class="video-wrapper">
+            @if (streamMessage() && streamStatus() !== 'regular') {
+              <div class="stream-badge" 
+                   [class.badge-ended]="streamStatus() === 'ended'" 
+                   [class.badge-live]="streamStatus() === 'live'">
+                <span class="material-icons">
+                  {{ streamStatus() === 'ended' ? 'live_tv' : 'fiber_manual_record' }}
+                </span>
+                {{ streamMessage() }}
+              </div>
+            }
+            <video #videoElement controls [src]="videoUrl()" class="video-element">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        } @else if (streamStatus() === 'not-started') {
         <!-- Scheduled Stream Not Started - Replaces Video Player -->
         <div class="video-placeholder">
           <div class="placeholder-content">
@@ -39,76 +41,89 @@
           </div>
         </div>
       }
-      
-      <div class="video-details">
         
-        <h1 class="video-title">{{ video()?.title }}</h1>
-        
-        <div class="video-meta">
-          <div class="author-info">
-            <span class="material-icons">account_circle</span>
-            <span class="author-name">{{ video()?.username || 'Unknown' }}</span>
-          </div>
+        <div class="video-details">
           
-          <div class="video-actions">
-            <button (click)="onLike()" class="action-btn like-btn" [class.liked]="video()?.likedByCurrentUser">
-              <span class="material-icons">thumb_up</span>
-              <span class="action-label">Like</span>
-              @if (video()?.likes !== undefined) {
-                <span class="likes-count">{{ video()!.likes }}</span>
-              }
-            </button>
-          </div>
-        </div>
-        
-        @if (errorMessage()) {
-          <div class="error-message">
-            <span class="material-icons">error</span>
-            {{ errorMessage() }}
-          </div>
-        }
-        
-        <div class="video-stats">
-          @if (video()?.views !== undefined) {
-            <span class="views-count">
-              <span class="material-icons">visibility</span>
-              {{ video()!.views }} views
-            </span>
-          }
-          <span class="upload-date">
-            <span class="material-icons">calendar_today</span>
-            {{ video()!.createdAt | date:'medium' }}
-          </span>
-          @if (video()?.latitude !== undefined && video()?.longitude !== undefined) {
-            <span class="location">
-              <span class="material-icons">location_on</span>
-              {{ video()!.latitude }}, {{ video()!.longitude }}
-            </span>
-          }
-          @if (video()?.tags && (video()?.tags?.length ?? 0) > 0) {
-            <div class="tags-container">
-              <span class="material-icons tags-icon">tag</span>
-              <div class="tags-list">
-                @for (tag of video()?.tags; track tag) {
-                  <span class="tag">{{ tag }}</span>
+          <h1 class="video-title">{{ video()?.title }}</h1>
+          
+          <div class="video-meta">
+            <div class="meta-row">
+              <div class="author-info">
+                <span class="material-icons">account_circle</span>
+                <span class="author-name">{{ video()?.username || 'Unknown' }}</span>
+              </div>
+              
+              <div class="video-actions">
+                <button (click)="onLike()" class="action-btn like-btn" [class.liked]="video()?.likedByCurrentUser">
+                  <span class="material-icons">thumb_up</span>
+                  @if (video()?.likes !== undefined) {
+                    <span class="likes-count">{{ video()!.likes }}</span>
+                  }
+                </button>
+                
+                <!-- Live Chat Toggle Button - samo ako je stream LIVE -->
+                @if (isStreamLive()) {
+                  <button (click)="toggleLiveChat()" class="action-btn chat-toggle-btn" [class.active]="showLiveChat()">
+                    <span class="material-icons">{{ showLiveChat() ? 'chat' : 'chat_bubble_outline' }}</span>
+                    <span class="action-label">{{ showLiveChat() ? 'Hide Chat' : 'Show Chat' }}</span>
+                  </button>
                 }
               </div>
             </div>
+          </div>
+          
+          @if (errorMessage()) {
+            <div class="error-message">
+              <span class="material-icons">error</span>
+              {{ errorMessage() }}
+            </div>
+          }
+          
+          <div class="video-stats">
+            @if (video()?.views !== undefined) {
+              <span class="stat-item">
+                <span class="material-icons">visibility</span>
+                {{ video()!.views }} views
+              </span>
+            }
+            <span class="stat-item">
+              <span class="material-icons">calendar_today</span>
+              {{ video()!.createdAt | date:'medium' }}
+            </span>
+          </div>
+          
+          @if (video()?.tags && (video()?.tags?.length ?? 0) > 0) {
+            <div class="tags">
+              @for (tag of video()?.tags; track tag) {
+                <span class="tag">{{ tag }}</span>
+              }
+            </div>
+          }
+          
+          <!-- Comments Section -->
+          @if (video()?.id) {
+            <div class="comments-wrapper">
+              <app-video-comments [videoId]="video()!.id" />
+            </div>
           }
         </div>
-        
-        @if (video()?.description) {
-          <div class="video-description">
-            <h3>Description</h3>
-            <p>{{ video()?.description }}</p>
-          </div>
-        }
       </div>
       
-      <!-- Comments Section -->
-      @if (video()?.id) {
-        <app-video-comments [videoId]="video()!.id"></app-video-comments>
+      <!-- Live Chat Sidebar - samo kada je stream LIVE i chat je otvoren -->
+      @if (isStreamLive() && showLiveChat() && video()?.id) {
+        <aside class="live-chat-sidebar">
+          <div class="chat-header">
+            <h3>Live Chat</h3>
+            <button (click)="toggleLiveChat()" class="close-btn" title="Close chat">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="chat-content">
+            <app-chat [streamId]="video()!.id" />
+          </div>
+        </aside>
       }
+      
     </div>
   } @else if (errorMessage()) {
     <!-- Error State -->

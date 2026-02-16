@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { VideoService } from '../../services/video.service';
-import { VideoPostResponse, PopularVideoDto } from '../../models/video.model';
+import { VideoPostResponse, PopularVideoDto, convertLocalDateTimeToString } from '../../models/video.model';
 
 @Component({
   selector: 'app-home',
@@ -36,7 +36,8 @@ export class HomeComponent implements OnInit {
         const mappedVideos = response.popularVideos
           .map((video: any) => ({
             ...video,
-            username: video.uploaderUsername
+            username: video.uploaderUsername,
+            scheduledReleaseTime: video.scheduledReleaseTime ? convertLocalDateTimeToString(video.scheduledReleaseTime) : undefined
           }))
           .filter((video: any) => this.isVideoAvailable(video));
         this.popularVideos.set(mappedVideos);
@@ -51,8 +52,13 @@ export class HomeComponent implements OnInit {
   loadVideos(): void {
     this.videoService.getAllVideos().subscribe({
       next: (videos) => {
+        // Konvertuj scheduledReleaseTime iz array formata u string
+        const convertedVideos = videos.map(video => ({
+          ...video,
+          scheduledReleaseTime: video.scheduledReleaseTime ? convertLocalDateTimeToString(video.scheduledReleaseTime) : undefined
+        }));
         // Filtriraj samo videe koji su dostupni (nisu zakazani za budućnost)
-        const availableVideos = videos.filter(video => this.isVideoAvailable(video));
+        const availableVideos = convertedVideos.filter(video => this.isVideoAvailable(video));
         this.videos.set(availableVideos);
         this.loadMoreVideos();
         this.isLoading.set(false);
@@ -79,6 +85,7 @@ export class HomeComponent implements OnInit {
     // Upoređujemo samo datume (bez sati)
     const scheduledDate = new Date(scheduledTime.getFullYear(), scheduledTime.getMonth(), scheduledTime.getDate());
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    console.log(`Checking availability for video "${video.title}": scheduledDate=${scheduledDate.toUTCString()}, currentDate=${currentDate.toUTCString()}`);
     
     // Video je dostupan ako je datum premijere danas ili u prošlosti
     return currentDate >= scheduledDate;

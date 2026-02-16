@@ -56,3 +56,16 @@ export interface PopularVideosResponse {
   reportDate: string;
   popularVideos: PopularVideoDto[];
 }
+
+/**
+ * Helper funkcija za konverziju LocalDateTime array-a u ISO string
+ * Backend šalje LocalDateTime kao [year, month, day, hour, minute, second, nanosecond]
+ * Podržava i nepotpune array-e (npr. bez sekundi i nanosekundi)
+ */
+export function convertLocalDateTimeToString(dateArray: any): string {
+  if (Array.isArray(dateArray) && dateArray.length >= 5) {
+    const [year, month, day, hour, minute, second = 0, nano = 0] = dateArray;
+    return new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1000000)).toISOString();
+  }
+  return dateArray; // Ako nije array, vrati originalnu vrednost
+}
