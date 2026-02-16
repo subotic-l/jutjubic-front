@@ -32,16 +32,18 @@
   margin: 0 auto;
   padding: 24px;
   transition: all 0.3s ease;
-}
-
-.video-player-layout.chat-open .primary-content {
-  max-width: calc(100% - 424px);
+  position: relative;
 }
 
 .primary-content {
   flex: 1;
   min-width: 0;
-  transition: max-width 0.3s ease;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.video-player-layout.chat-open .primary-content {
+  width: calc(100% - 424px);
 }
 
 /* Video Player */
@@ -142,7 +144,7 @@
 }
 
 /* Video Info */
-.video-info {
+.video-details {
   background: transparent;
   padding: 16px 0;
 }
@@ -155,36 +157,66 @@
   line-height: 1.4;
 }
 
-.video-meta-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.video-meta {
   padding-bottom: 16px;
   border-bottom: 1px solid #3f3f3f;
   margin-bottom: 16px;
 }
 
-.video-stats {
+.meta-row {
   display: flex;
-  gap: 16px;
-  color: #aaa;
-  font-size: 14px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.video-stats .stat {
+.author-info {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+}
+
+.author-info .material-icons {
+  font-size: 36px;
+  color: #aaa;
+}
+
+.author-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #f1f1f1;
+}
+
+.video-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  color: #aaa;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-item .material-icons {
+  font-size: 18px;
 }
 
 .video-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-btn {
-  background: transparent;
-  border: 1px solid #3f3f3f;
+  background: #272727;
+  border: none;
   color: #f1f1f1;
   padding: 10px 16px;
   border-radius: 18px;
@@ -201,57 +233,35 @@
   background: #3f3f3f;
 }
 
-.action-btn.active {
-  background: #22c55e;
-  border-color: #22c55e;
-  color: white;
-}
-
-.action-btn.liked {
-  background: #22c55e;
-  border-color: #22c55e;
-  color: white;
-}
-
 .action-btn .material-icons {
   font-size: 20px;
 }
 
-/* Channel Info */
-.channel-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0;
+.action-btn.liked {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
 }
 
-.channel-details {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.action-btn.liked:hover {
+  background: rgba(34, 197, 94, 0.25);
 }
 
-.channel-avatar {
-  font-size: 40px;
-  color: #aaa;
+.action-btn.active {
+  background: #3ea6ff;
+  color: white;
 }
 
-.channel-name {
+.action-btn.active:hover {
+  background: #3390e8;
+}
+
+.action-label {
+  font-weight: 500;
+}
+
+.likes-count {
   font-weight: 600;
-  font-size: 15px;
-  color: #f1f1f1;
-}
-
-/* Description */
-.video-description {
-  background: #272727;
-  padding: 16px;
-  border-radius: 12px;
-  margin: 16px 0;
-  color: #f1f1f1;
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap;
+  margin-left: 4px;
 }
 
 /* Tags */
@@ -259,7 +269,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 12px 0;
+  margin-bottom: 16px;
 }
 
 .tag {
@@ -275,20 +285,6 @@
 
 .tag:hover {
   background: #4f4f4f;
-}
-
-/* Location */
-.location {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #aaa;
-  font-size: 13px;
-  margin: 12px 0;
-}
-
-.location .material-icons {
-  font-size: 18px;
 }
 
 /* Comments Wrapper */
@@ -440,7 +436,7 @@
   }
   
   .video-player-layout.chat-open .primary-content {
-    max-width: calc(100% - 374px);
+    width: calc(100% - 374px);
   }
 }
 
@@ -450,7 +446,11 @@
   }
   
   .video-player-layout.chat-open .primary-content {
-    max-width: 100%;
+    width: 100%;
+  }
+  
+  .primary-content {
+    width: 100%;
   }
   
   .live-chat-sidebar {
@@ -464,9 +464,10 @@
 @media (max-width: 768px) {
   .video-player-layout {
     padding: 12px;
+    gap: 16px;
   }
   
-  .video-meta-bar {
+  .meta-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
@@ -474,11 +475,18 @@
   
   .video-actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
   
   .action-btn {
     flex: 1;
     justify-content: center;
+    min-width: 100px;
+  }
+  
+  .video-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
