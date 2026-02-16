@@ -34,6 +34,12 @@
         } @else {
           <div class="user-menu">
             <span class="username">{{ authService.currentUser()?.username || authService.currentUser()?.email }}</span>
+
+            <a routerLink="/watch-party/create" class="btn btn-watch-party">
+              <span class="material-icons">groups</span>
+              Watch Party
+            </a>
+
             <a routerLink="/upload" class="btn btn-upload">
               <span class="material-icons">cloud_upload</span>
               Upload Video

@@ -105,14 +105,14 @@ export class HomeComponent implements OnInit {
     return this.displayedVideos().length < this.videos().length;
   }
 
-  getThumbnailUrl(thumbnailPath: string): string {
-    return this.videoService.getThumbnailUrl(thumbnailPath);
+  getThumbnailUrl(video: VideoPostResponse): string {
+    return this.videoService.getThumbnailUrl(video);
   }
 
-  getPopularThumbnailUrl(thumbnailPath: string): string {
-    return this.videoService.getThumbnailUrl(thumbnailPath);
+  getPopularThumbnailUrl(video: any): string {
+    return this.videoService.getThumbnailUrl(video);
   }
-
+  
   onVideoClick(videoId: number): void {
     this.router.navigate(['/video', videoId]);
   }
