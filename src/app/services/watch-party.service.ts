@@ -13,8 +13,8 @@ export class WatchPartyService {
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
   
-  private apiUrl = 'http://localhost:8080/api/watch-party';
-  private wsUrl = 'http://localhost:8080/ws';
+  private apiUrl = 'http://localhost/api/watch-party';
+  private wsUrl = 'http://localhost/ws';
   
   private stompClient: Client | null = null;
   private messageSubject = new Subject<WatchPartyMessage>();
