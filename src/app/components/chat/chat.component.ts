@@ -20,6 +20,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   newMessage: string = '';
   private currentStreamId: number = 0;
   private authService = inject(AuthService);
+  private messageSubscription: any;
 
   constructor(private chatService: ChatService) {
     // Effect koji se poziva svaki put kad se messages signal promeni
@@ -37,6 +38,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       const id = this.streamId();
       if (id && id > 0) {
         this.currentStreamId = id;
+        console.log('ChatComponent: Initializing for stream', id);
         this.chatService.connect(id);
       } else {
         console.warn('Chat: Invalid streamId', id);
@@ -46,13 +48,19 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     
     // Subscribe na poruke
-    this.chatService.messages$.subscribe(message => {
+    this.messageSubscription = this.chatService.messages$.subscribe(message => {
+      console.log('ChatComponent: Message received', message);
       this.messages.update(current => [...current, message]);
     });
   }
 
   ngOnDestroy(): void {
-    this.chatService.disconnect();
+    console.log('ChatComponent: Destroying, unsubscribing from messages');
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
+    // Note: Don't disconnect the service here since it's a singleton
+    // and might be used by other components
   }
 
   sendMessage(): void {
